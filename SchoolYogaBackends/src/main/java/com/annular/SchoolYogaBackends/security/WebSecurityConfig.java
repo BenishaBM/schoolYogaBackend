@@ -71,7 +71,8 @@ public class WebSecurityConfig {
                 .and()
                 .authorizeRequests(
                         (authorize) -> authorize
-                                .antMatchers( "/user/login","/user/refreshToken","/user/register","/user/getUserName")
+                                .antMatchers( "/user/login","/user/refreshToken","/user/register","/user/getUserName"
+                                		+ "/user/getSmileImage","/user/getAllAvatarImage","/category/getAllCategory")
                                 .permitAll()
                                 .anyRequest()
                                 .authenticated()
