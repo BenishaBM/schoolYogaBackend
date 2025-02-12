@@ -36,6 +36,7 @@ public class UserWebModel {
 	private String std;
 	private Integer profilePic;
 	private Integer smilePic;
+	private String token;
 	
     
 

@@ -1,5 +1,7 @@
 package com.annular.SchoolYogaBackends.controller;
 
+import java.time.LocalTime;
+
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -26,6 +28,7 @@ import com.annular.SchoolYogaBackends.Response;
 import com.annular.SchoolYogaBackends.UserStatusConfig;
 import com.annular.SchoolYogaBackends.model.RefreshToken;
 import com.annular.SchoolYogaBackends.model.User;
+import com.annular.SchoolYogaBackends.repository.RefreshTokenRepository;
 import com.annular.SchoolYogaBackends.repository.UserRepository;
 import com.annular.SchoolYogaBackends.security.UserDetailsImpl;
 import com.annular.SchoolYogaBackends.security.jwt.JwtResponse;
@@ -33,6 +36,7 @@ import com.annular.SchoolYogaBackends.security.jwt.JwtUtils;
 import com.annular.SchoolYogaBackends.service.UserService;
 import com.annular.SchoolYogaBackends.webModel.FileOutputWebModel;
 import com.annular.SchoolYogaBackends.webModel.UserWebModel;
+
 @RestController
 @RequestMapping("/user")
 public class UserController {
@@ -45,8 +49,8 @@ public class UserController {
 	@Autowired
 	UserStatusConfig loginConstants;
 
-//	@Autowired
-//	RefreshTokenRepository refreshTokenRepository;
+	@Autowired
+	RefreshTokenRepository refreshTokenRepository;
 
 	@Autowired
 	AuthenticationManager authenticationManager;
@@ -135,6 +139,27 @@ public class UserController {
 	                             .body(new Response(-1, "Fail", e.getMessage()));
 	    }
 	}
+	@PostMapping("refreshToken")
+    public ResponseEntity<?> refreshToken(@RequestBody UserWebModel userWebModel) {
+        Optional<RefreshToken> data = refreshTokenRepository.findByToken(userWebModel.getToken());
+        if (data.isPresent()) {
+            Response token = userService.verifyExpiration(data.get());
+            Optional<User> userData = userRepository.findById(data.get().getUserId());
+            String jwt = jwtUtils.generateJwtTokenForRefreshToken(userData.get());
+            RefreshToken refreshToken = data.get();
+            refreshToken.setExpiryToken(LocalTime.now().plusMinutes(17));
+            refreshTokenRepository.save(refreshToken);
+            return ResponseEntity.ok(new JwtResponse(jwt,userData.get().getUserId(),
+                
+                   
+                    1,
+                    token.getData().toString(),
+                    userData.get().getUserType()
+                   ));
+        }
+        return ResponseEntity.badRequest().body(new Response(-1, "Fail", "Refresh Token Failed"));
+    }
+
 	
 	@PostMapping("updateUserDetails")
 	public ResponseEntity<?> updateUserDetails(@RequestBody UserWebModel userWebModel) {

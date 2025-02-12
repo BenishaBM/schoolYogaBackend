@@ -2,7 +2,7 @@ package com.annular.SchoolYogaBackends.service;
 
 import org.springframework.http.ResponseEntity;
 
-
+import com.annular.SchoolYogaBackends.Response;
 import com.annular.SchoolYogaBackends.model.RefreshToken;
 import com.annular.SchoolYogaBackends.model.User;
 import com.annular.SchoolYogaBackends.webModel.FileOutputWebModel;
@@ -27,5 +27,7 @@ public interface UserService {
 	ResponseEntity<?> getAllAvatarImage();
 
 	ResponseEntity<?> getSmileImage();
+
+	Response verifyExpiration(RefreshToken refreshToken);
 
 }
