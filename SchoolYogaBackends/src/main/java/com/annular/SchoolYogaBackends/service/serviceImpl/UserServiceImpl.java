@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -257,7 +258,7 @@ public class UserServiceImpl implements UserService {
 	             imageData.put("id", image.getId());
 	             imageData.put("path", baseUrl + image.getPath()); // Concatenate base URL with stored path
 	             return imageData;
-	         }).toList();
+	         }).collect(Collectors.toList()); // Use collect instead of toList()
 
 	         // Prepare response
 	         Map<String, Object> responseMap = new HashMap<>();
@@ -272,8 +273,8 @@ public class UserServiceImpl implements UserService {
 	     }
 	 }
 
-	@Override
-	public ResponseEntity<?> getSmileImage() {
+	 @Override
+	 public ResponseEntity<?> getSmileImage() {
 	     logger.info("Fetching avatar images for getAllAvatarImage");
 
 	     List<SmileImage> avatarImages = smileImageRepository.findAll();
@@ -288,7 +289,7 @@ public class UserServiceImpl implements UserService {
 	             imageData.put("id", image.getId());
 	             imageData.put("path", baseUrl + image.getPath()); // Concatenate base URL with stored path
 	             return imageData;
-	         }).toList();
+	         }).collect(Collectors.toList()); // Use collect instead of toList()
 
 	         // Prepare response
 	         Map<String, Object> responseMap = new HashMap<>();
@@ -301,11 +302,7 @@ public class UserServiceImpl implements UserService {
 	         return ResponseEntity.status(HttpStatus.NOT_FOUND)
 	                 .body(new Response(0, "Fail", "No avatar images found"));
 	     }
-	}
-
-
-	
-
+	 }
 
 
 
