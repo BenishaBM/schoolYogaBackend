@@ -43,7 +43,7 @@ public class User {
 	private String password;
 
 	@Column(name = "user_type")
-	private String userType;
+	private String userType; // student//teacher//superAdmin
 
 	@Column(name = "userIsActive")
 	private Boolean userIsActive;
@@ -64,15 +64,14 @@ public class User {
 
 	@Column(name = "userName")
 	private String userName;
-	
+
 	@Column(name = "gender")
 	private String gender;
-	
-	@Column(name = "region")
-	private String region;
-	
+
 	@Column(name = "rollNo")
 	private String rollNo;
-	
+
+	@Column(name = "schoolName")
+	private Integer schoolName;
 
 }

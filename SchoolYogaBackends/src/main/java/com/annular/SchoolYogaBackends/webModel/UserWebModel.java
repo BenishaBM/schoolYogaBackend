@@ -31,7 +31,7 @@ public class UserWebModel {
     private Date userUpdatedOn;
     private String userName;
 	private String gender;
-	private String region;
+	private Integer schoolName;
 	private String rollNo;
 	
     
