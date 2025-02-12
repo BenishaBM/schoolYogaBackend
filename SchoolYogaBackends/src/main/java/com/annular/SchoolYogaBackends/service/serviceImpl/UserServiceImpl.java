@@ -305,11 +305,11 @@ public class UserServiceImpl implements UserService {
 	     }
 	 }
 
-	@Override
-	public Response verifyExpiration(RefreshToken refreshToken) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+		@Override
+		public Response verifyExpiration(RefreshToken refreshToken) {
+			// TODO Auto-generated method stub
+		    return new Response(-1, "Fail", "RefreshToken expired");
+		}
 
 
 
