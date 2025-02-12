@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -14,6 +15,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,6 +31,7 @@ import com.annular.SchoolYogaBackends.security.UserDetailsImpl;
 import com.annular.SchoolYogaBackends.security.jwt.JwtResponse;
 import com.annular.SchoolYogaBackends.security.jwt.JwtUtils;
 import com.annular.SchoolYogaBackends.service.UserService;
+import com.annular.SchoolYogaBackends.webModel.FileOutputWebModel;
 import com.annular.SchoolYogaBackends.webModel.UserWebModel;
 @RestController
 @RequestMapping("/user")
@@ -158,5 +161,38 @@ public class UserController {
 	                             .body(new Response(-1, "Fail", e.getMessage()));
 	    }
 	}
-
+    @PostMapping(path = "/saveProfilePhoto", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    public Response saveProfilePhoto(@ModelAttribute UserWebModel userWebModel) {
+        FileOutputWebModel profilePic = userService.saveProfilePhoto(userWebModel);
+        if (profilePic != null) {
+            return new Response(1, "Profile pic saved Successfully...", profilePic);
+        } else {
+            return new Response(-1, "User not found...", null);
+        }
+    }
+    
+	@GetMapping("getAllAvatarImage")
+	public ResponseEntity<?> getAllAvatarImage() {
+	    try {
+	        logger.info("getAllAvatarImage request for userId: {}");
+	        return userService.getAllAvatarImage();
+	    } catch (Exception e) {
+	        logger.error("getAllAvatarImage Method Exception: {}", e.getMessage(), e);
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+	                             .body(new Response(-1, "Fail", e.getMessage()));
+	    }
+	}
+	
+	@GetMapping("getSmileImage")
+	public ResponseEntity<?> getSmileImage() {
+	    try {
+	        logger.info("getSmileImage request for userId: {}");
+	        return userService.getSmileImage();
+	    } catch (Exception e) {
+	        logger.error("getSmileImage Method Exception: {}", e.getMessage(), e);
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+	                             .body(new Response(-1, "Fail", e.getMessage()));
+	    }
+	}
+    
 }

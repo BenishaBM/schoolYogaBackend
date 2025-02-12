@@ -73,5 +73,14 @@ public class User {
 
 	@Column(name = "schoolName")
 	private Integer schoolName;
+	
+	@Column(name = "std")
+	private String std;
+	
+	@Column(name = "profilePic")
+	private Integer profilePic;
+	
+	@Column(name = "smilePic")
+	private Integer smilePic;
 
 }
