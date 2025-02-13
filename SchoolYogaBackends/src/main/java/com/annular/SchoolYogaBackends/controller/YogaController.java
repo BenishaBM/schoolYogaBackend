@@ -6,8 +6,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -51,5 +55,33 @@ public class YogaController {
             return new Response(-1, "Error at getting user posts....", e.getMessage());
         }
         return new Response(-1, "Files were not found....", null);
+    }
+    
+    @GetMapping("/getYogaById")
+    public Response getPostsByPostId(@RequestParam("id") Integer id) {
+        try {
+        	YogaWebModel output = yogaService.getPostByYogaId(id);
+            if (output != null) return new Response(1, "Post(s) found successfully...", output);
+            else return new Response(-1, "No Post(s) available...", null);
+        } catch (Exception e) {
+            logger.error("Error at getPostsByPostId() -> {}", e.getMessage());
+        }
+        return new Response(-1, "Post files were not found...", null);
+    }
+    
+    @PostMapping("/deleteYogaPostById")
+    public ResponseEntity<?> deleteYogaPostById(@RequestBody YogaWebModel yogaWebModel) {
+        try {
+            boolean isDeleted = yogaService.deleteYogaPostById(yogaWebModel);
+            if (isDeleted) {
+                return ResponseEntity.ok(new Response(1, "Success","Post deleted successfully."));
+            } else {
+                return ResponseEntity.badRequest().body(new Response(-1, "fail","Failed to delete post"));
+            }
+        } catch (Exception e) {
+            logger.error("deletePostByUserId Method Exception -> {}", e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body(new Response(-1, "Fail", e.getMessage()));
+        }
     }
 }

@@ -10,4 +10,8 @@ public interface YogaService {
 
 	List<YogaWebModel> getAllUsersPosts();
 
+	YogaWebModel getPostByYogaId(Integer id);
+
+	boolean deleteYogaPostById(YogaWebModel yogaWebModel);
+
 }

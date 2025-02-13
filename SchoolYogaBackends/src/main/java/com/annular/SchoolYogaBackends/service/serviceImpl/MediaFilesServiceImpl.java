@@ -167,4 +167,26 @@ public class MediaFilesServiceImpl implements MediaFileService {
 	        return outputWebModelList;
 	    }
 
+
+	    @Override
+	    public void deleteMediaFilesByCategoryAndRefIds(MediaFileCategory category, List<Integer> idList) {
+	        List<MediaFiles> mediaFiles = mediaFilesRepository.getMediaFilesByCategoryAndRefIds(category, idList);
+	        this.deleteMediaFiles(mediaFiles);
+	    }
+	    
+	    private void deleteMediaFiles(List<MediaFiles> mediaFiles) {
+	        try {
+	            if (!Utility.isNullOrEmptyList(mediaFiles)) {
+	                mediaFiles.forEach(mediaFile -> {
+	                    mediaFile.setStatus(false); // 1. Deactivating the MediaFiles
+	                    mediaFilesRepository.saveAndFlush(mediaFile);
+	                    fileUtil.deleteFile(mediaFile.getFilePath() + mediaFile.getFileType()); // 2. Deleting the S3 Objects
+	                });
+	            }
+	        } catch (Exception e) {
+	            logger.error("Error at deleteMediaFiles() -> [{}]", e.getMessage());
+	            e.printStackTrace();
+	        }
+	    }
+
 }

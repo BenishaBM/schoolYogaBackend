@@ -14,5 +14,7 @@ public interface MediaFileService {
 
 	List<FileOutputWebModel> getMediaFilesByCategoryAndRefId(MediaFileCategory yoga, Integer id);
 
+	void deleteMediaFilesByCategoryAndRefIds(MediaFileCategory category, List<Integer> idList);
+
 
 }
