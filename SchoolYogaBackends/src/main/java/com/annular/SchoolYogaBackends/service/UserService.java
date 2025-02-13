@@ -1,5 +1,7 @@
 package com.annular.SchoolYogaBackends.service;
 
+import java.util.Optional;
+
 import org.springframework.http.ResponseEntity;
 
 import com.annular.SchoolYogaBackends.Response;
@@ -29,5 +31,7 @@ public interface UserService {
 	ResponseEntity<?> getSmileImage();
 
 	Response verifyExpiration(RefreshToken refreshToken);
+	
+	Optional<User> getUser(Integer userId);
 
 }

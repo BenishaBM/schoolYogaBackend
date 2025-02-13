@@ -426,5 +426,15 @@ public class UserServiceImpl implements UserService {
 		}
 
 
+	    @Override
+	    public Optional<User> getUser(Integer userId) {
+	        User user = null;
+	        Optional<?> dbUser = userRepository.getUserByUserId(userId);
+	        if (dbUser.isPresent())
+	            user = (User) dbUser.get();
+	        return Optional.ofNullable(user);
+	    }
+
+
 
 }
