@@ -77,7 +77,7 @@ public class UserServiceImpl implements UserService {
 	    try {
 	        logger.info("Register method start");
 	        // Check if user already exists
-	        Optional<User> existingUser = userRepository.findByEmailId(userWebModel.getEmailId());
+	        Optional<User> existingUser = userRepository.findByEmailIdAndUserType(userWebModel.getEmailId(), userWebModel.getUserType());
 	        if (existingUser.isPresent()) {
 	            response.put("message", "User with this email already exists");
 	            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
@@ -97,49 +97,31 @@ public class UserServiceImpl implements UserService {
 	                .profilePic(userWebModel.getProfilePic())
 	                .createdBy(userWebModel.getCreatedBy())
 	                .userName(userWebModel.getUserName())
+	                .empId(userWebModel.getEmpId())
 	                .build();
 
 	        // Save user
 	        User savedUser = userRepository.save(newUser);
 
-	        // Handle multiple categories
+	        // Handle multiple categories: only add a category if a valid categoryId is passed
 	        if (userWebModel.getCategoryNames() != null && !userWebModel.getCategoryNames().isEmpty()) {
 	            List<HashMap<String, Object>> categories = userWebModel.getCategoryNames();
-	            
 	            for (HashMap<String, Object> categoryMap : categories) {
-	                Category category = null;
-	                
-	                // Try to find category by ID if provided
+	                // Process only if "categoryId" is provided
 	                if (categoryMap.containsKey("categoryId")) {
 	                    Integer categoryId = Integer.valueOf(categoryMap.get("categoryId").toString());
-	                    category = categoryRepository.findById(categoryId).orElse(null);
-	                }
-	                
-	                // If not found by ID, try to find by name
-	                String categoryName = (String) categoryMap.get("categoryName");
-	                if (category == null && categoryName != null && !categoryName.trim().isEmpty()) {
-	                    category = categoryRepository.findByCategoryNames(categoryName);
-	                }
-	                
-	                // If still not found, create new category
-	                if (category == null && categoryName != null && !categoryName.trim().isEmpty()) {
-	                    category = Category.builder()
-	                            .categoryName(categoryName)
-	                            .categoryIsActive(true)
-	                            .categorycreatedBy(savedUser.getUserId())
-	                            .build();
-	                    category = categoryRepository.save(category);
-	                }
-
-	                // Create StudentCategoryDetails if category exists
-	                if (category != null) {
-	                    StudentCategoryDetails studentCategoryDetails = StudentCategoryDetails.builder()
-	                            .studentCategoryIsActive(true)
-	                            .studentCategoryCreatedBy(savedUser.getUserId())
-	                            .category(category)
-	                            .user(savedUser)
-	                            .build();
-	                    studentCategoryDetailsRepository.save(studentCategoryDetails);
+	                    Category category = categoryRepository.findById(categoryId).orElse(null);
+	                    
+	                    if (category != null) {
+	                        // Create StudentCategoryDetails linking the saved user to the existing category
+	                        StudentCategoryDetails studentCategoryDetails = StudentCategoryDetails.builder()
+	                                .studentCategoryIsActive(true)
+	                                .studentCategoryCreatedBy(savedUser.getUserId())
+	                                .category(category)
+	                                .user(savedUser)
+	                                .build();
+	                        studentCategoryDetailsRepository.save(studentCategoryDetails);
+	                    }
 	                }
 	            }
 	        }
@@ -225,35 +207,108 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public ResponseEntity<Response> updateUserDetails(UserWebModel userWebModel) {
 	    logger.info("Updating user details for userId: {}", userWebModel.getUserId());
+	    try {
+	        Optional<User> optionalUser = userRepository.findById(userWebModel.getUserId());
+	        if (optionalUser.isPresent()) {
+	            User user = optionalUser.get();
+	            
+	         // Check and update email if provided and different from current value
+	            if (userWebModel.getEmailId() != null && !userWebModel.getEmailId().equals(user.getEmailId())) {
+	                Optional<User> emailUser = userRepository.findByEmailIdAndUserType(userWebModel.getEmailId(), user.getUserType());
+	                if (emailUser.isPresent() && !emailUser.get().getUserId().equals(user.getUserId())) {
+	                    logger.warn("Email already exists: {}", userWebModel.getEmailId());
+	                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+	                        .body(new Response(0, "Fail", "Email already exists"));
+	                }
+	                user.setEmailId(userWebModel.getEmailId());
+	            }
 
-	    Optional<User> optionalUser = userRepository.findById(userWebModel.getUserId());
+	            
+	            // Update other fields only if new data is provided (i.e., not null)
+	            if (userWebModel.getUserName() != null) {
+	                user.setUserName(userWebModel.getUserName());
+	            }
+	            if (userWebModel.getSchoolName() != null) {
+	                user.setSchoolName(userWebModel.getSchoolName());
+	            }
+	            if (userWebModel.getRollNo() != null) {
+	                user.setRollNo(userWebModel.getRollNo());
+	            }
+	            if (userWebModel.getEmpId() != null) {
+	                user.setEmpId(userWebModel.getEmpId());
+	            }
+	            if (userWebModel.getFrdName() != null) {
+	                user.setFrdName(userWebModel.getFrdName());
+	            }
+	            if (userWebModel.getFrdDescription() != null) {
+	                user.setFrdDescription(userWebModel.getFrdDescription());
+	            }
+	            if (userWebModel.getProfilePic() != null) {
+	                user.setProfilePic(userWebModel.getProfilePic());
+	            }
+	            if (userWebModel.getSmilePic() != null) {
+	                user.setSmilePic(userWebModel.getSmilePic());
+	            }
+	            if (userWebModel.getStd() != null) {
+	                user.setStd(userWebModel.getStd());
+	            }
+	            if (userWebModel.getUserUpdatedBy() != null) {
+	                user.setUserUpdatedBy(userWebModel.getUserUpdatedBy());
+	            }
+	            
+	            // Save the updated user details
+	            User savedUser = userRepository.save(user);
 
-	    if (optionalUser.isPresent()) {
-	        User user = optionalUser.get();
+	            // Handle category updates:
+	            // For each provided category, if an active StudentCategoryDetails record already exists,
+	            // deactivate it (set active flag to false) and then add a new record.
+	            if (userWebModel.getCategoryNames() != null && !userWebModel.getCategoryNames().isEmpty()) {
+	                List<HashMap<String, Object>> categories = userWebModel.getCategoryNames();
+	                for (HashMap<String, Object> categoryMap : categories) {
+	                    // Process only if "categoryId" is provided
+	                    if (categoryMap.containsKey("categoryId")) {
+	                        Integer categoryId = Integer.valueOf(categoryMap.get("categoryId").toString());
+	                        Category category = categoryRepository.findById(categoryId).orElse(null);
+	                        
+	                        if (category != null) {
+	                            // Check if an active link already exists for this user and category
+	                            StudentCategoryDetails existingLink = studentCategoryDetailsRepository
+	                                .findByUserAndCategoryAndStudentCategoryIsActive(savedUser, category, true);
+	                            
+	                            if (existingLink != null) {
+	                                // Deactivate the existing link
+	                                existingLink.setStudentCategoryIsActive(false);
+	                                studentCategoryDetailsRepository.save(existingLink);
+	                            }
+	                            
+	                            // Add the new link
+	                            StudentCategoryDetails newLink = StudentCategoryDetails.builder()
+	                                .studentCategoryIsActive(true)
+	                                .studentCategoryCreatedBy(savedUser.getUserId())
+	                                .category(category)
+	                                .user(savedUser)
+	                                .build();
+	                            studentCategoryDetailsRepository.save(newLink);
+	                        }
+	                    }
+	                    // If no categoryId is provided, do nothing.
+	                }
+	            }
 
-	        // Updating user details
-	        user.setUserName(userWebModel.getUserName());
-	        user.setSchoolName(userWebModel.getSchoolName());
-	        user.setRollNo(userWebModel.getRollNo());
-	        user.setEmailId(userWebModel.getEmailId());
-	        user.setUserType(userWebModel.getUserType());
-	        user.setUserUpdatedBy(userWebModel.getUserUpdatedBy()); // Assuming this field exists
-
-
-	        // Save the updated user details
-	        userRepository.save(user);
-
-	        logger.info("User details updated successfully for userId: {}", userWebModel.getUserId());
-
-	        HashMap<String, Object> responseMap = new HashMap<>();
-	        responseMap.put("updatedUser", user);
-
-	        return ResponseEntity.ok(new Response(1, "User details updated successfully", responseMap));
-	    } else {
-	        logger.warn("User not found with userId: {}", userWebModel.getUserId());
-	        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new Response(0, "Fail", "User not found"));
+	            logger.info("User details updated successfully for userId: {}", userWebModel.getUserId());
+	            return ResponseEntity.ok(new Response(1, "Success", "User details updated successfully"));
+	        } else {
+	            logger.warn("User not found with userId: {}", userWebModel.getUserId());
+	            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+	                               .body(new Response(0, "Fail", "User not found"));
+	        }
+	    } catch (Exception e) {
+	        logger.error("Error updating user details: " + e.getMessage(), e);
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+	                           .body(new Response(0, "Fail", "Error updating user details"));
 	    }
 	}
+
 
 	@Override
 	public ResponseEntity<Response> getUserDetailsByUserType(String userType) {

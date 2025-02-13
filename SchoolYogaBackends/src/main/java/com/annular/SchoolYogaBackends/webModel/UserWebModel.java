@@ -43,6 +43,7 @@ public class UserWebModel {
 	private List<HashMap<String, Object>> categoryNames;
 	private String frdName;
 	private String frdDescription;
+	private String empId;
 	
     
 

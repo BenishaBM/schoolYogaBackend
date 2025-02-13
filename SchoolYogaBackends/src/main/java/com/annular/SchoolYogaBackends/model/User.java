@@ -93,6 +93,9 @@ public class User {
 	@Column(name = "frdDescription")
 	private String frdDescription;
 	
+	@Column(name = "empId")
+	private String empId;
+	
     // Corrected One-to-Many relationship mapping
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<StudentCategoryDetails> studentCategoryDetails;
