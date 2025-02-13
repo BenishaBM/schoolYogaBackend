@@ -2,6 +2,7 @@ package com.annular.SchoolYogaBackends.service.serviceImpl;
 
 import java.util.HashMap;
 
+
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -18,12 +19,16 @@ import org.springframework.stereotype.Service;
 
 import com.annular.SchoolYogaBackends.Response;
 import com.annular.SchoolYogaBackends.model.AvatarImage;
+import com.annular.SchoolYogaBackends.model.Category;
 import com.annular.SchoolYogaBackends.model.RefreshToken;
 import com.annular.SchoolYogaBackends.model.SmileImage;
+import com.annular.SchoolYogaBackends.model.StudentCategoryDetails;
 import com.annular.SchoolYogaBackends.model.User;
 import com.annular.SchoolYogaBackends.repository.AvartarImageRepository;
+import com.annular.SchoolYogaBackends.repository.CategoryRepository;
 import com.annular.SchoolYogaBackends.repository.RefreshTokenRepository;
 import com.annular.SchoolYogaBackends.repository.SmileImageRepository;
+import com.annular.SchoolYogaBackends.repository.StudentCategoryDetailsRepository;
 import com.annular.SchoolYogaBackends.repository.UserRepository;
 //import com.annular.SchoolYogaBackends.service.MediaFileService;
 import com.annular.SchoolYogaBackends.service.UserService;
@@ -56,43 +61,97 @@ public class UserServiceImpl implements UserService {
 
 	@Autowired
 	private PasswordEncoder passwordEncoder;
+	
+	@Autowired
+	CategoryRepository categoryRepository;
+	
+	@Autowired
+	StudentCategoryDetailsRepository studentCategoryDetailsRepository;
 
 	@Autowired
 	private RefreshTokenRepository refreshTokenRepository;
 
 	@Override
 	public ResponseEntity<?> register(UserWebModel userWebModel) {
-		HashMap<String, Object> response = new HashMap<>();
-		try {
-			logger.info("Register method start");
+	    HashMap<String, Object> response = new HashMap<>();
+	    try {
+	        logger.info("Register method start");
+	        // Check if user already exists
+	        Optional<User> existingUser = userRepository.findByEmailId(userWebModel.getEmailId());
+	        if (existingUser.isPresent()) {
+	            response.put("message", "User with this email already exists");
+	            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+	        }
 
-			// Check if user already exists
-			Optional<User> existingUser = userRepository.findByEmailId(userWebModel.getEmailId());
-			if (existingUser.isPresent()) {
-				response.put("message", "User with this email already exists");
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-			}
+	        // Create new user entity
+	        User newUser = User.builder()
+	                .emailId(userWebModel.getEmailId())
+	                .password(passwordEncoder.encode(userWebModel.getPassword()))
+	                .userType(userWebModel.getUserType())
+	                .userIsActive(true)
+	                .frdName(userWebModel.getFrdName())
+	                .frdDescription(userWebModel.getFrdDescription())
+	                .schoolName(userWebModel.getSchoolName())
+	                .rollNo(userWebModel.getRollNo())
+	                .std(userWebModel.getStd())
+	                .profilePic(userWebModel.getProfilePic())
+	                .createdBy(userWebModel.getCreatedBy())
+	                .userName(userWebModel.getUserName())
+	                .build();
 
-			// Create new user entity
-			User newUser = User.builder().emailId(userWebModel.getEmailId())
-					.password(passwordEncoder.encode(userWebModel.getPassword())) // Encrypt password
-					.userType(userWebModel.getUserType()).userIsActive(true) // Default active
-					.schoolName(userWebModel.getSchoolName()).rollNo(userWebModel.getRollNo())
-					.std(userWebModel.getStd()).profilePic(userWebModel.getProfilePic())
-					.createdBy(userWebModel.getCreatedBy()).userName(userWebModel.getUserName()).build();
+	        // Save user
+	        User savedUser = userRepository.save(newUser);
 
-			// Save user
-			User savedUser = userRepository.save(newUser);
+	        // Handle multiple categories
+	        if (userWebModel.getCategoryNames() != null && !userWebModel.getCategoryNames().isEmpty()) {
+	            List<HashMap<String, Object>> categories = userWebModel.getCategoryNames();
+	            
+	            for (HashMap<String, Object> categoryMap : categories) {
+	                Category category = null;
+	                
+	                // Try to find category by ID if provided
+	                if (categoryMap.containsKey("categoryId")) {
+	                    Integer categoryId = Integer.valueOf(categoryMap.get("categoryId").toString());
+	                    category = categoryRepository.findById(categoryId).orElse(null);
+	                }
+	                
+	                // If not found by ID, try to find by name
+	                String categoryName = (String) categoryMap.get("categoryName");
+	                if (category == null && categoryName != null && !categoryName.trim().isEmpty()) {
+	                    category = categoryRepository.findByCategoryNames(categoryName);
+	                }
+	                
+	                // If still not found, create new category
+	                if (category == null && categoryName != null && !categoryName.trim().isEmpty()) {
+	                    category = Category.builder()
+	                            .categoryName(categoryName)
+	                            .categoryIsActive(true)
+	                            .categorycreatedBy(savedUser.getUserId())
+	                            .build();
+	                    category = categoryRepository.save(category);
+	                }
 
-			return ResponseEntity.ok(new Response(0, "success", "User registered successfully"));
+	                // Create StudentCategoryDetails if category exists
+	                if (category != null) {
+	                    StudentCategoryDetails studentCategoryDetails = StudentCategoryDetails.builder()
+	                            .studentCategoryIsActive(true)
+	                            .studentCategoryCreatedBy(savedUser.getUserId())
+	                            .category(category)
+	                            .user(savedUser)
+	                            .build();
+	                    studentCategoryDetailsRepository.save(studentCategoryDetails);
+	                }
+	            }
+	        }
 
-
-		} catch (Exception e) {
-			logger.error("Error registering user: " + e.getMessage(), e);
-			response.put("message", "Registration failed");
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-		}
+	        return ResponseEntity.ok(new Response(1, "success", "User registered successfully"));
+	    } catch (Exception e) {
+	        logger.error("Error registering user: " + e.getMessage(), e);
+	        response.put("message", "Registration failed");
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+	    }
 	}
+
 
 	@Override
 	public RefreshToken createRefreshToken(User user) {

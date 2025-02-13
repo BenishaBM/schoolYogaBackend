@@ -1,6 +1,8 @@
 package com.annular.SchoolYogaBackends.webModel;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 
 import javax.persistence.Column;
 
@@ -37,6 +39,10 @@ public class UserWebModel {
 	private Integer profilePic;
 	private Integer smilePic;
 	private String token;
+	private String categoryName;
+	private List<HashMap<String, Object>> categoryNames;
+	private String frdName;
+	private String frdDescription;
 	
     
 
