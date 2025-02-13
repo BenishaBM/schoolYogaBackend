@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.annular.SchoolYogaBackends.model.MediaFileCategory;
 import com.annular.SchoolYogaBackends.model.MediaFiles;
 import com.annular.SchoolYogaBackends.model.User;
 import com.annular.SchoolYogaBackends.repository.MediaFilesRepository;
@@ -150,5 +151,20 @@ public class MediaFilesServiceImpl implements MediaFileService {
 	        return fileOutputWebModel;
 	    }
 
+
+	    @Override
+	    public List<FileOutputWebModel> getMediaFilesByCategoryAndRefId(MediaFileCategory category, Integer refId) {
+	        List<FileOutputWebModel> outputWebModelList = new ArrayList<>();
+	        try {
+	            List<MediaFiles> mediaFiles = mediaFilesRepository.getMediaFilesByCategoryAndRefId(category, refId);
+	            if (!Utility.isNullOrEmptyList(mediaFiles)) {
+	                outputWebModelList = mediaFiles.stream().map(this::transformData).collect(Collectors.toList());
+	            }
+	        } catch (Exception e) {
+	            logger.error("Error at getMediaFilesByCategoryAndRefId() -> {}", e.getMessage());
+	            e.printStackTrace();
+	        }
+	        return outputWebModelList;
+	    }
 
 }

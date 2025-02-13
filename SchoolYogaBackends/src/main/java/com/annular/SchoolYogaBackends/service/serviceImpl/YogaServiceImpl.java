@@ -1,8 +1,10 @@
 package com.annular.SchoolYogaBackends.service.serviceImpl;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -21,6 +23,7 @@ import com.annular.SchoolYogaBackends.service.UserService;
 import com.annular.SchoolYogaBackends.service.YogaService;
 import com.annular.SchoolYogaBackends.util.Utility;
 import com.annular.SchoolYogaBackends.webModel.FileInputWebModel;
+import com.annular.SchoolYogaBackends.webModel.FileOutputWebModel;
 import com.annular.SchoolYogaBackends.webModel.YogaWebModel;
 
 @Service
@@ -77,24 +80,59 @@ public class YogaServiceImpl implements YogaService {
         }
     }
 
+    private List<YogaWebModel> transformPostsDataToYogaWebModel(List<Yoga> yogaList) {
+        try {
+            if (Utility.isNullOrEmptyList(yogaList)) {
+                return Collections.emptyList();
+            }
+            
+            return yogaList.stream()
+                    .filter(Objects::nonNull)
+                    .map(yoga -> {
+                        // Optionally, fetch media files associated with the yoga post.
+                        List<FileOutputWebModel> postFiles = mediaFilesService.getMediaFilesByCategoryAndRefId(MediaFileCategory.Yoga, yoga.getId());
+                        
+                        // Build and return the YogaWebModel.
+                        // If YogaWebModel has a field for files, you can pass postFiles into its builder.
+                        return YogaWebModel.builder()
+                                .id(yoga.getId())
+                                .yogaId(yoga.getYogaId())
+                                .description(yoga.getDescription())
+                                .status(yoga.getStatus())
+                                .createdBy(yoga.getCreatedBy())
+                                .createdOn(yoga.getCreatedOn())
+                                .updatedBy(yoga.getUpdatedBy())
+                                .updatedOn(yoga.getUpdatedOn())
+                                .postFiles(postFiles)
+//                                //.files(postFiles) // Uncomment if YogaWebModel has a files field
+                                .build();
+                    })
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            logger.error("Error in transformPostsDataToYogaWebModel: {}", e.getMessage(), e);
+            return Collections.emptyList();
+        }
+    }
 
-	private List<YogaWebModel> transformPostsDataToYogaWebModel(List<Yoga> yogaList) {
-	    if (yogaList == null || yogaList.isEmpty()) {
-	        return Collections.emptyList();
+
+
+	@Override
+	public List<YogaWebModel> getAllUsersPosts() {
+	    try {
+	        List<Yoga> postList = yogaRepository.getAllActivePosts();
+	        if (postList == null || postList.isEmpty()) {
+	            return Collections.emptyList();
+	        }
+	        // Transform the posts into YogaWebModel and return
+	        return this.transformPostsDataToYogaWebModel(postList);
+	    } catch (Exception e) {
+	        logger.error("Error in getAllUsersPosts(): {}", e.getMessage(), e);
+	        return Collections.emptyList(); // or return null; if you prefer
 	    }
-	    return yogaList.stream()
-	        .map(yoga -> YogaWebModel.builder()
-	                .id(yoga.getId())
-	                .yogaId(yoga.getYogaId())
-	                .description(yoga.getDescription())
-	                .status(yoga.getStatus())
-	                .createdBy(yoga.getCreatedBy())
-	                .createdOn(yoga.getCreatedOn())
-	                .updatedBy(yoga.getUpdatedBy())
-	                .updatedOn(yoga.getUpdatedOn())
-	                .build())
-	        .collect(Collectors.toList());
 	}
+
+
+
 
 
 

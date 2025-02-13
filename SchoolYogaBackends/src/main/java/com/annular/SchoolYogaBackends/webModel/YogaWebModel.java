@@ -32,5 +32,6 @@ public class YogaWebModel {
 	private Date updatedOn;
 	List<MultipartFile> files;
 	private Integer userId;
+	private List<FileOutputWebModel> postFiles;
 
 }
