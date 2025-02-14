@@ -1,5 +1,6 @@
 package com.annular.SchoolYogaBackends.service.serviceImpl;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,13 +19,17 @@ import org.springframework.stereotype.Service;
 import com.annular.SchoolYogaBackends.Response;
 import com.annular.SchoolYogaBackends.model.AvatarImage;
 import com.annular.SchoolYogaBackends.model.Category;
+import com.annular.SchoolYogaBackends.model.ClassDetails;
 import com.annular.SchoolYogaBackends.model.RefreshToken;
+import com.annular.SchoolYogaBackends.model.SchoolDetails;
 import com.annular.SchoolYogaBackends.model.SmileImage;
 import com.annular.SchoolYogaBackends.model.StudentCategoryDetails;
 import com.annular.SchoolYogaBackends.model.User;
 import com.annular.SchoolYogaBackends.repository.AvartarImageRepository;
 import com.annular.SchoolYogaBackends.repository.CategoryRepository;
+import com.annular.SchoolYogaBackends.repository.ClassDetailsRepository;
 import com.annular.SchoolYogaBackends.repository.RefreshTokenRepository;
+import com.annular.SchoolYogaBackends.repository.SchoolDetailsRepository;
 import com.annular.SchoolYogaBackends.repository.SmileImageRepository;
 import com.annular.SchoolYogaBackends.repository.StudentCategoryDetailsRepository;
 import com.annular.SchoolYogaBackends.repository.UserRepository;
@@ -59,6 +64,12 @@ public class UserServiceImpl implements UserService {
 
 	@Autowired
 	private PasswordEncoder passwordEncoder;
+	
+	@Autowired
+	SchoolDetailsRepository schoolDetailsRepository;
+	
+	@Autowired
+	ClassDetailsRepository classDetailsRepository;
 	
 	@Autowired
 	CategoryRepository categoryRepository;
@@ -185,7 +196,68 @@ public class UserServiceImpl implements UserService {
 
 	        User user = userOptional.get();
 	        Map<String, Object> responseMap = new HashMap<>();
-	        responseMap.put("userDetails", user);
+	        Map<String, Object> userDetailsMap = new HashMap<>();
+
+	        // Fetching school name from SchoolDetails table
+	        String schoolName = null;
+	        if (user.getSchoolName() != null) {
+	            Optional<SchoolDetails> schoolOptional = schoolDetailsRepository.findById(user.getSchoolName());
+	            schoolName = schoolOptional.map(SchoolDetails::getSchoolDetailsName).orElse(null);
+	        }
+
+	        // Fetching class level from ClassDetails table
+	        String classLevel = null;
+	        if (user.getStd() != null) {
+	            Optional<ClassDetails> classOptional = classDetailsRepository.findById(user.getStd());
+	            classLevel = classOptional.map(ClassDetails::getClassLevel).orElse(null);
+	        }
+
+	        // Fetching profile and smile picture paths
+	        String profilePicUrl = user.getProfilePic() != null ? 
+	            "https://schoolyogabackend.s3.ap-south-1.amazonaws.com/" + user.getProfilePic() : null;
+
+	        String smilePicUrl = user.getSmilePic() != null ? 
+	            "https://schoolyogabackend.s3.ap-south-1.amazonaws.com/" + user.getSmilePic() : null;
+
+	        // Constructing response using HashMap
+	        userDetailsMap.put("emailId", user.getEmailId());
+	        userDetailsMap.put("userType", user.getUserType());
+	        userDetailsMap.put("userIsActive", user.getUserIsActive());
+	        userDetailsMap.put("createdBy", user.getCreatedBy());
+	        userDetailsMap.put("userCreatedOn", user.getUserCreatedOn());
+	        userDetailsMap.put("userUpdatedBy", user.getUserUpdatedBy());
+	        userDetailsMap.put("userUpdatedOn", user.getUserUpdatedOn());
+	        userDetailsMap.put("userName", user.getUserName());
+	        userDetailsMap.put("gender", user.getGender());
+	        userDetailsMap.put("rollNo", user.getRollNo());
+	        userDetailsMap.put("schoolName", schoolName);
+	        userDetailsMap.put("std", classLevel);
+	        userDetailsMap.put("profilePic", profilePicUrl);
+	        userDetailsMap.put("smilePic", smilePicUrl);
+	        userDetailsMap.put("frdName", user.getFrdName());
+	        userDetailsMap.put("age", user.getAge());
+	        userDetailsMap.put("frdDescription", user.getFrdDescription());
+	        userDetailsMap.put("empId", user.getEmpId());
+
+	        // Fetching StudentCategoryDetails
+	        List<StudentCategoryDetails> studentCategoryDetailsList = studentCategoryDetailsRepository.findByUser(user);
+	        List<Map<String, Object>> categoryDetailsList = new ArrayList<>();
+
+	        for (StudentCategoryDetails studentCategory : studentCategoryDetailsList) {
+	            Map<String, Object> categoryDetails = new HashMap<>();
+	            Category category = studentCategory.getCategory();
+
+	            categoryDetails.put("categoryId", category.getCategoryId());
+	            categoryDetails.put("categoryName", category.getCategoryName());  // Assuming Category has a name
+	            categoryDetails.put("studentCategoryIsActive", studentCategory.getStudentCategoryIsActive());
+	            categoryDetails.put("studentCategoryCreatedOn", studentCategory.getStudentCategoryCreatedOn());
+	            categoryDetails.put("studentCategoryUpdatedOn", studentCategory.getStudentCategoryUpdatedOn());
+
+	            categoryDetailsList.add(categoryDetails);
+	        }
+
+	        userDetailsMap.put("studentCategories", categoryDetailsList);
+	        responseMap.put("userDetails", userDetailsMap);
 
 	        logger.info("User details retrieved successfully for userId: {}", userId);
 	        return ResponseEntity.ok(new Response(1, "User details retrieved successfully", responseMap));
@@ -196,6 +268,7 @@ public class UserServiceImpl implements UserService {
 	            .body(new Response(0, "Error", Map.of("error", "Internal Server Error")));
 	    }
 	}
+
 
 	@Override
 	public ResponseEntity<?> deleteUserDetails(Integer userId) {

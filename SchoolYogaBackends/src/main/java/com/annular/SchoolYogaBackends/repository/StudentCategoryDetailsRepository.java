@@ -1,5 +1,7 @@
 package com.annular.SchoolYogaBackends.repository;
 
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -12,5 +14,7 @@ public interface StudentCategoryDetailsRepository extends JpaRepository<StudentC
 
 	StudentCategoryDetails findByUserAndCategoryAndStudentCategoryIsActive(User savedUser, Category category,
 			boolean b);
+
+	List<StudentCategoryDetails> findByUser(User user);
 
 }

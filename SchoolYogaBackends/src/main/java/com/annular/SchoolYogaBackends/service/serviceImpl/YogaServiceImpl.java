@@ -13,10 +13,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.annular.SchoolYogaBackends.model.ClassDetails;
 import com.annular.SchoolYogaBackends.model.MediaFileCategory;
 import com.annular.SchoolYogaBackends.model.QuestionDetails;
 import com.annular.SchoolYogaBackends.model.User;
 import com.annular.SchoolYogaBackends.model.Yoga;
+import com.annular.SchoolYogaBackends.repository.ClassDetailsRepository;
 import com.annular.SchoolYogaBackends.repository.QuestionDetailsRepository;
 import com.annular.SchoolYogaBackends.repository.YogaRepository;
 import com.annular.SchoolYogaBackends.service.MediaFileService;
@@ -41,6 +43,9 @@ public class YogaServiceImpl implements YogaService {
 
 	@Autowired
 	UserService userService;
+	
+	@Autowired
+	ClassDetailsRepository classDetailsRepository;
 	
 	@Autowired
 	QuestionDetailsRepository questionDetailsRepository;
@@ -139,13 +144,21 @@ public class YogaServiceImpl implements YogaService {
 	                    .build()
 	            ).collect(Collectors.toList());
 
-
+	         // Fetch ClassDetails based on classDetailsId
+	            String classLevel = null;
+	            if (yoga.getClassDetailsId() != null) {
+	                Optional<ClassDetails> classDetailsOptional = classDetailsRepository.findById(yoga.getClassDetailsId());
+	                classLevel = classDetailsOptional.map(ClassDetails::getClassLevel).orElse(null);
+	            }
 				
 				// Build and return the YogaWebModel.
 				// If YogaWebModel has a field for files, you can pass postFiles into its
 				// builder.
 				return YogaWebModel.builder().id(yoga.getId()).yogaId(yoga.getYogaId())
 						.description(yoga.getDescription())
+						.classDetailsId(yoga.getClassDetailsId())
+						 .classLevel(classLevel) // Replacing classDetailsId with classLevel
+						.day(yoga.getDay())
 						.status(yoga.getStatus()).createdBy(yoga.getCreatedBy())
 						.createdOn(yoga.getCreatedOn()).updatedBy(yoga.getUpdatedBy()).updatedOn(yoga.getUpdatedOn())
 						.postFiles(postFiles)

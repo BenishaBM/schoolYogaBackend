@@ -34,6 +34,7 @@ public class YogaWebModel {
 	private Integer userId;
 	private String userType;
 	private String day;
+	private String classLevel;
 	private Integer classDetailsId;
 	  private List<QuestionInputModel> questions; // Correct type for questions
 	private List<FileOutputWebModel> postFiles;
