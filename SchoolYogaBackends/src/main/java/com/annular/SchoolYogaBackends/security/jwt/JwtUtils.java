@@ -2,7 +2,6 @@ package com.annular.SchoolYogaBackends.security.jwt;
 
 import java.util.Date;
 
-
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 

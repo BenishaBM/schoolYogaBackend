@@ -1,14 +1,16 @@
 package com.annular.SchoolYogaBackends.util;
 
 
-import io.github.techgnious.IVCompressor;
-import io.github.techgnious.dto.ImageFormats;
-import io.github.techgnious.dto.ResizeResolution;
-import io.github.techgnious.dto.VideoFormats;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.util.List;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.multipart.MultipartFile;
@@ -17,18 +19,6 @@ import com.annular.SchoolYogaBackends.model.User;
 import com.annular.SchoolYogaBackends.service.AwsS3Service;
 
 import software.amazon.awssdk.services.s3.model.S3Object;
-
-import javax.imageio.IIOImage;
-import javax.imageio.ImageIO;
-import javax.imageio.ImageWriteParam;
-import javax.imageio.ImageWriter;
-import javax.imageio.stream.ImageOutputStream;
-import java.awt.image.BufferedImage;
-import java.io.*;
-import java.nio.file.Files;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
 
 @Configuration
 public class FileUtil {

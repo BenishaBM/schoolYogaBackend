@@ -9,7 +9,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -52,7 +51,7 @@ public class YogaController {
         } catch (Exception e) {
             logger.error("Error at getAllYogaPosts() -> {}", e.getMessage());
             e.printStackTrace();
-            return new Response(-1, "Error at getting user posts....", e.getMessage());
+            return new Response(0, "fail", "A Yoga entry with this day and classDetailsId already exists.");
         }
         return new Response(-1, "Files were not found....", null);
     }

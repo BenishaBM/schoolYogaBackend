@@ -1,6 +1,5 @@
 package com.annular.SchoolYogaBackends.service.serviceImpl;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -15,9 +14,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.annular.SchoolYogaBackends.model.MediaFileCategory;
+import com.annular.SchoolYogaBackends.model.QuestionDetails;
 import com.annular.SchoolYogaBackends.model.User;
 import com.annular.SchoolYogaBackends.model.Yoga;
-import com.annular.SchoolYogaBackends.repository.MediaFilesRepository;
+import com.annular.SchoolYogaBackends.repository.QuestionDetailsRepository;
 import com.annular.SchoolYogaBackends.repository.YogaRepository;
 import com.annular.SchoolYogaBackends.service.MediaFileService;
 import com.annular.SchoolYogaBackends.service.UserService;
@@ -25,6 +25,7 @@ import com.annular.SchoolYogaBackends.service.YogaService;
 import com.annular.SchoolYogaBackends.util.Utility;
 import com.annular.SchoolYogaBackends.webModel.FileInputWebModel;
 import com.annular.SchoolYogaBackends.webModel.FileOutputWebModel;
+import com.annular.SchoolYogaBackends.webModel.QuestionWebModel;
 import com.annular.SchoolYogaBackends.webModel.YogaWebModel;
 
 @Service
@@ -40,6 +41,9 @@ public class YogaServiceImpl implements YogaService {
 
 	@Autowired
 	UserService userService;
+	
+	@Autowired
+	QuestionDetailsRepository questionDetailsRepository;
 
 	@Override
 	public YogaWebModel saveYogaWithFiles(YogaWebModel yogaWebModel) {
@@ -51,10 +55,20 @@ public class YogaServiceImpl implements YogaService {
 				return null;
 			}
 			logger.info("User found: {}", userFromDB.getUserName());
+			
+			// ✅ Check for duplicate entry before saving
+	        boolean exists = yogaRepository.existsByDayAndClassDetailsId(yogaWebModel.getDay(), yogaWebModel.getClassDetailsId());
+	        if (exists) {
+	            logger.error("Yoga entry with day '{}' and classDetailsId '{}' already exists.", yogaWebModel.getDay(), yogaWebModel.getClassDetailsId());
+	            throw new IllegalArgumentException("A Yoga entry with this day and classDetailsId already exists.");
+	        }
 
 			// Create and save a new Yoga post
 			Yoga posts = Yoga.builder().yogaId(UUID.randomUUID().toString()).description(yogaWebModel.getDescription())
-					.status(true).createdOn(new Date()).build();
+					.status(true)
+					.classDetailsId(yogaWebModel.getClassDetailsId())
+					.day(yogaWebModel.getDay())
+					.createdOn(new Date()).build();
 			Yoga savedPost = yogaRepository.saveAndFlush(posts);
 
 			// If files are provided, save them in the media_files table
@@ -64,6 +78,28 @@ public class YogaServiceImpl implements YogaService {
 				mediaFilesService.saveMediaFiles(fileInputWebModel, userFromDB);
 			}
 
+
+			// Save associated questions if available
+			if (!Utility.isNullOrEmptyList(yogaWebModel.getQuestions())) {
+			    List<QuestionDetails> questionEntities = yogaWebModel.getQuestions().stream()
+			        .map(question -> QuestionDetails.builder()
+			                .yogaId(savedPost.getId()) 
+			                .questionDetails(question.getQuestionDetails())
+			                .questionType(question.getQuestionType())
+			                .answerA(question.getAnswerA())
+			                .answerB(question.getAnswerB())
+			                .answerC(question.getAnswerC())
+			                .answerD(question.getAnswerD())
+			                .questionDetailsIsActive(true)
+
+			                .questionDetailsCreatedOn(new Date()) 
+			                .build())
+			        .collect(Collectors.toList());
+
+			    questionDetailsRepository.saveAll(questionEntities);
+			}
+
+	           
 			// Transform the saved Yoga post into a YogaWebModel and return it
 			List<YogaWebModel> responseList = this.transformPostsDataToYogaWebModel(List.of(savedPost));
 			return responseList.isEmpty() ? null : responseList.get(0);
@@ -84,14 +120,36 @@ public class YogaServiceImpl implements YogaService {
 				// Optionally, fetch media files associated with the yoga post.
 				List<FileOutputWebModel> postFiles = mediaFilesService
 						.getMediaFilesByCategoryAndRefId(MediaFileCategory.Yoga, yoga.getId());
+				
+				// Fetch questions associated with the yoga post.
+	            List<QuestionDetails> questions = questionDetailsRepository.findByYogaId(yoga.getId());
 
+	            // Map QuestionDetails entities to YogaWebModel's question format
+	            List<QuestionWebModel> questionWebModels = questions.stream().map(q -> 
+	                QuestionWebModel.builder()
+	                    .questionDetailsId(q.getQuestionDetailsId())
+	                    .questionDetails(q.getQuestionDetails())
+	                    .questionType(q.getQuestionType())
+	                    .answerA(q.getAnswerA())
+	                    .answerB(q.getAnswerB())
+	                    .answerC(q.getAnswerC())
+	                    .answerD(q.getAnswerD())
+	                    .questionDetailsIsActive(q.getQuestionDetailsIsActive())
+	                    .questionDetailsCreatedOn(q.getQuestionDetailsCreatedOn())
+	                    .build()
+	            ).collect(Collectors.toList());
+
+
+				
 				// Build and return the YogaWebModel.
 				// If YogaWebModel has a field for files, you can pass postFiles into its
 				// builder.
 				return YogaWebModel.builder().id(yoga.getId()).yogaId(yoga.getYogaId())
-						.description(yoga.getDescription()).status(yoga.getStatus()).createdBy(yoga.getCreatedBy())
+						.description(yoga.getDescription())
+						.status(yoga.getStatus()).createdBy(yoga.getCreatedBy())
 						.createdOn(yoga.getCreatedOn()).updatedBy(yoga.getUpdatedBy()).updatedOn(yoga.getUpdatedOn())
 						.postFiles(postFiles)
+						.questionss(questionWebModels) // Ensure this field exists in YogaWebModel
 //                                //.files(postFiles) // Uncomment if YogaWebModel has a files field
 						.build();
 			}).collect(Collectors.toList());
@@ -100,6 +158,7 @@ public class YogaServiceImpl implements YogaService {
 			return Collections.emptyList();
 		}
 	}
+
 
 	@Override
 	public List<YogaWebModel> getAllUsersPosts() {

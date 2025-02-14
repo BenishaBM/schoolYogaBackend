@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.annular.SchoolYogaBackends.model.Yoga;
@@ -20,5 +21,9 @@ public interface YogaRepository extends JpaRepository<Yoga, Integer> {
 
 	@Query("SELECT p FROM Yoga p WHERE p.id = :id AND p.status = true")
 	Optional<Yoga> findByYogaId(Integer id);
+	
+	@Query("SELECT COUNT(y) > 0 FROM Yoga y WHERE y.day = :day AND y.classDetailsId = :classDetailsId AND y.status = true")
+	boolean existsByDayAndClassDetailsId(@Param("day") String day, @Param("classDetailsId") Integer classDetailsId);
+
 
 }

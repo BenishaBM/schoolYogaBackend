@@ -62,5 +62,17 @@ public class Yoga {
 	@Column(name = "updated_on")
 	@CreationTimestamp
 	private Date updatedOn;
-
+	
+	@Column(name = "userType")
+	private String userType;
+	
+	@Column(name = "classDetailsId")
+	private Integer classDetailsId;
+	
+	@Column(name = "questions")
+	private String questions;
+	
+	@Column(name = "day")
+	private String day;
+	
 }

@@ -1,11 +1,10 @@
 package com.annular.SchoolYogaBackends.service;
 
 
-import software.amazon.awssdk.services.s3.model.S3Object;
-
 import java.io.File;
-import java.io.InputStream;
 import java.util.List;
+
+import software.amazon.awssdk.services.s3.model.S3Object;
 
 public interface AwsS3Service {
 

@@ -11,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.annular.SchoolYogaBackends.Response;
-import com.annular.SchoolYogaBackends.model.Category;
 import com.annular.SchoolYogaBackends.model.ClassDetails;
 import com.annular.SchoolYogaBackends.model.DayDetails;
 import com.annular.SchoolYogaBackends.model.SchoolDetails;
