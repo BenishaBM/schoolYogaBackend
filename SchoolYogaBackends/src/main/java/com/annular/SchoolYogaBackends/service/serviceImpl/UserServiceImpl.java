@@ -94,6 +94,7 @@ public class UserServiceImpl implements UserService {
 	                .rollNo(userWebModel.getRollNo())
 	                .std(userWebModel.getStd())
 	                .profilePic(userWebModel.getProfilePic())
+	                .smilePic(userWebModel.getSmilePic())
 	                .createdBy(userWebModel.getCreatedBy())
 	                .userName(userWebModel.getUserName())
 	                .empId(userWebModel.getEmpId())
@@ -173,19 +174,29 @@ public class UserServiceImpl implements UserService {
 	public ResponseEntity<Response> getUserDetailsById(int userId) {
 	    logger.info("Fetching user details for userId: {}", userId);
 
-	    return userRepository.findById(userId)
-	        .map(user -> {
-	            HashMap<String, Object> responseMap = new HashMap<>();
-	            responseMap.put("userDetails", user);
+	    try {
+	        Optional<User> userOptional = userRepository.findById(userId);
 
-	            logger.info("User details retrieved successfully for userId: {}", userId);
-	            return ResponseEntity.ok(new Response(1, "User details retrieved successfully", responseMap));
-	        })
-	        .orElseGet(() -> {
+	        if (userOptional.isEmpty()) {
 	            logger.warn("User not found with userId: {}", userId);
-	            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new Response(0, "Fail", "User not found"));
-	        });
+	            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+	                .body(new Response(0, "Fail", Map.of("error", "User not found")));
+	        }
+
+	        User user = userOptional.get();
+	        Map<String, Object> responseMap = new HashMap<>();
+	        responseMap.put("userDetails", user);
+
+	        logger.info("User details retrieved successfully for userId: {}", userId);
+	        return ResponseEntity.ok(new Response(1, "User details retrieved successfully", responseMap));
+
+	    } catch (Exception e) {
+	        logger.error("Error fetching user details for userId {}: {}", userId, e.getMessage(), e);
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+	            .body(new Response(0, "Error", Map.of("error", "Internal Server Error")));
+	    }
 	}
+
 	@Override
 	public ResponseEntity<?> deleteUserDetails(Integer userId) {
 	    if (userId == null) {

@@ -14,6 +14,8 @@ import javax.persistence.Table;
 
 import org.hibernate.annotations.CreationTimestamp;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -57,10 +59,12 @@ public class StudentCategoryDetails {
     // Replace the plain categoryId field with a Many-to-One relationship
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "categoryId")  // This column will hold the foreign key to Category
+    @JsonIgnore
     private Category category;
 	
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "userId")
+	@JsonIgnore
 	private User user;
 
 
