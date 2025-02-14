@@ -11,8 +11,6 @@ import javax.persistence.Table;
 
 import org.hibernate.annotations.CreationTimestamp;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -21,38 +19,39 @@ import lombok.Setter;
 import lombok.ToString;
 
 @Entity
-@Table(name = "category")
+@Table(name = "dayDetails")
 @Builder
 @Getter
 @Setter
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
-public class Category {
+public class DayDetails {
 	
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "category_Id")
-	private Integer categoryId;
+	@Column(name = "dayDetailsId")
+	private Integer dayDetailsId;
 	
-	@Column(name = "category_name")
-	private String categoryName;
+	@Column(name = "days")
+	private String days;
 	
-	@Column(name = "categoryIsActive")
-	private Boolean categoryIsActive;
+	@Column(name = "dayDetailsIsActive")
+	private Boolean dayDetailsIsActive;
 
-	@Column(name = "categorycreated_by")
-	private Integer categorycreatedBy;
+	@Column(name = "created_by")
+	private Integer createdBy;
 
 	@CreationTimestamp
-	@Column(name = "category_created_on")
-	private Date categoryCreatedOn;
+	@Column(name = "dayDetails_created_on")
+	private Date dayDetailsCreatedOn;
 
-	@Column(name = "category_updated_by")
-	private Integer categoryUpdatedBy;
+	@Column(name = "dayDetails_updated_by")
+	private Integer dayDetailsUpdatedBy;
 
-	@Column(name = "user_updated_on")
+	@Column(name = "dayDetails_updated_on")
 	@CreationTimestamp
-	private Date categoryUpdatedOn;
+	private Date dayDetailsUpdatedOn;
 
 }

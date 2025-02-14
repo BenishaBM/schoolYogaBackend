@@ -79,7 +79,7 @@ public class User {
 	private Integer schoolName;
 	
 	@Column(name = "std")
-	private String std;
+	private Integer std;
 	
 	@Column(name = "profilePic")
 	private Integer profilePic;
@@ -89,6 +89,9 @@ public class User {
 	
 	@Column(name = "frdname")
 	private String frdName;
+	
+	@Column(name = "age")
+	private Integer age;
 	
 	@Column(name = "frdDescription")
 	private String frdDescription;

@@ -35,7 +35,8 @@ public class UserWebModel {
 	private String gender;
 	private Integer schoolName;
 	private String rollNo;
-	private String std;
+	private Integer std;
+	private Integer age;
 	private Integer profilePic;
 	private Integer smilePic;
 	private String token;

@@ -89,6 +89,7 @@ public class UserServiceImpl implements UserService {
 	                .password(passwordEncoder.encode(userWebModel.getPassword()))
 	                .userType(userWebModel.getUserType())
 	                .userIsActive(true)
+	                .age(userWebModel.getAge())
 	                .frdName(userWebModel.getFrdName())
 	                .frdDescription(userWebModel.getFrdDescription())
 	                .schoolName(userWebModel.getSchoolName())
