@@ -13,6 +13,7 @@ import lombok.Setter;
 @Builder
 public class QuestionInputModel {
 
+	private Integer questionDetailsId;
     private String questionDetails;
     private String questionType;
     private String answerA;

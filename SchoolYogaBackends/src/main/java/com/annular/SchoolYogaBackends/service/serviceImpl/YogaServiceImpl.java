@@ -1,5 +1,6 @@
 package com.annular.SchoolYogaBackends.service.serviceImpl;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -27,6 +28,7 @@ import com.annular.SchoolYogaBackends.service.YogaService;
 import com.annular.SchoolYogaBackends.util.Utility;
 import com.annular.SchoolYogaBackends.webModel.FileInputWebModel;
 import com.annular.SchoolYogaBackends.webModel.FileOutputWebModel;
+import com.annular.SchoolYogaBackends.webModel.QuestionInputModel;
 import com.annular.SchoolYogaBackends.webModel.QuestionWebModel;
 import com.annular.SchoolYogaBackends.webModel.YogaWebModel;
 
@@ -227,6 +229,104 @@ public class YogaServiceImpl implements YogaService {
 	        return false;
 	    }
 	}
+	@Override
+	public YogaWebModel updateYogaWithFiles(YogaWebModel yogaWebModel) {
+	    try {
+	    	// Retrieve the user from the database
+	    				User userFromDB = userService.getUser(yogaWebModel.getUserId()).orElse(null);
+	    				if (userFromDB == null) {
+	    					logger.error("User not found for userId: {}", yogaWebModel.getUserId());
+	    					return null;
+	    				}
+	        // Check if the yoga post exists
+	        Yoga existingYoga = yogaRepository.findById(yogaWebModel.getId()).orElse(null);
+	        if (existingYoga == null) {
+	            logger.error("Yoga post not found for yogaId: {}", yogaWebModel.getYogaId());
+	            throw new IllegalArgumentException("Yoga post not found.");
+	        }
 
+	        // ✅ Check for duplicate entry before updating (excluding the current post)
+	        boolean exists = yogaRepository.existsByDayAndClassDetailsId(yogaWebModel.getDay(), yogaWebModel.getClassDetailsId());
+	        if (exists) {
+	            logger.error("Yoga entry with day '{}' and classDetailsId '{}' already exists.", yogaWebModel.getDay(), yogaWebModel.getClassDetailsId());
+	            throw new IllegalArgumentException("A Yoga entry with this day and classDetailsId already exists.");
+	        }
+
+	        // Update existing Yoga post
+	        existingYoga.setDescription(yogaWebModel.getDescription());
+	        existingYoga.setClassDetailsId(yogaWebModel.getClassDetailsId());
+	        existingYoga.setDay(yogaWebModel.getDay());
+	        existingYoga.setUpdatedOn(new Date()); // Assuming there's an `updatedOn` field
+
+	        Yoga updatedYoga = yogaRepository.saveAndFlush(existingYoga);
+
+	        // ✅ Delete specified files only
+	        if (!Utility.isNullOrEmptyList(yogaWebModel.getFileIds())) {
+	            mediaFilesService.deleteFilesByIds(yogaWebModel.getFileIds());
+	        }
+
+	        // ✅ Add new files if provided
+	        if (!Utility.isNullOrEmptyList(yogaWebModel.getFiles())) {
+	            FileInputWebModel fileInputWebModel = FileInputWebModel.builder()
+	                    .category(MediaFileCategory.Yoga)
+	                    .categoryRefId(existingYoga.getId())
+	                    .files(yogaWebModel.getFiles())
+	                    .build();
+	            mediaFilesService.saveMediaFiles(fileInputWebModel,userFromDB);
+	        }
+
+	        if (!Utility.isNullOrEmptyList(yogaWebModel.getQuestions())) {
+	            List<QuestionDetails> questionEntities = new ArrayList<>();
+
+	            for (QuestionInputModel question : yogaWebModel.getQuestions()) { // Use correct type
+	                if (question.getQuestionDetailsId() != null) {
+	                    // ✅ Update existing question
+	                    QuestionDetails existingQuestion = questionDetailsRepository.findById(question.getQuestionDetailsId())
+	                            .orElse(null);
+	                    if (existingQuestion != null) {
+	                        existingQuestion.setQuestionDetails(question.getQuestionDetails());
+	                        existingQuestion.setQuestionType(question.getQuestionType());
+	                        existingQuestion.setAnswerA(question.getAnswerA());
+	                        existingQuestion.setAnswerB(question.getAnswerB());
+	                        existingQuestion.setAnswerC(question.getAnswerC());
+	                        existingQuestion.setAnswerD(question.getAnswerD());
+	                        existingQuestion.setQuestionDetailsIsActive(true);
+	                        existingQuestion.setQuestionDetailsbyUpdatedOn(new Date());
+	                        questionEntities.add(existingQuestion);
+	                    }
+	                } else {
+	                    // ✅ Add new question
+	                    QuestionDetails newQuestion = QuestionDetails.builder()
+	                            .yogaId(existingYoga.getId())
+	                            .questionDetails(question.getQuestionDetails())
+	                            .questionType(question.getQuestionType())
+	                            .answerA(question.getAnswerA())
+	                            .answerB(question.getAnswerB())
+	                            .answerC(question.getAnswerC())
+	                            .answerD(question.getAnswerD())
+	                            .questionDetailsIsActive(true)
+	                            .questionDetailsCreatedOn(new Date())
+	                            .build();
+	                    questionEntities.add(newQuestion);
+	                }
+	            }
+
+	            // Save all updates and new additions
+	            questionDetailsRepository.saveAll(questionEntities);
+	        }
+
+
+	        // ✅ Transform and return updated Yoga post
+	        List<YogaWebModel> responseList = this.transformPostsDataToYogaWebModel(List.of(updatedYoga));
+	        return responseList.isEmpty() ? null : responseList.get(0);
+
+	    } catch (IllegalArgumentException e) {
+	        logger.error("Validation error at updateYogaWithFiles() -> {}", e.getMessage());
+	        throw e; // Rethrow for proper handling in the controller
+	    } catch (Exception e) {
+	        logger.error("Error at updateYogaWithFiles() -> {}", e.getMessage(), e);
+	        throw new RuntimeException("An error occurred while updating Yoga post.");
+	    }
+	}
 
 }

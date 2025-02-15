@@ -14,4 +14,6 @@ public interface YogaService {
 
 	boolean deleteYogaPostById(YogaWebModel yogaWebModel);
 
+	YogaWebModel updateYogaWithFiles(YogaWebModel yogaWebModel);
+
 }

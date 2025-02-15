@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.annular.SchoolYogaBackends.model.User;
 import com.annular.SchoolYogaBackends.model.Yoga;
 
 @Repository
@@ -24,6 +25,10 @@ public interface YogaRepository extends JpaRepository<Yoga, Integer> {
 	
 	@Query("SELECT COUNT(y) > 0 FROM Yoga y WHERE y.day = :day AND y.classDetailsId = :classDetailsId AND y.status = true")
 	boolean existsByDayAndClassDetailsId(@Param("day") String day, @Param("classDetailsId") Integer classDetailsId);
+
+	
+
+	
 
 
 }

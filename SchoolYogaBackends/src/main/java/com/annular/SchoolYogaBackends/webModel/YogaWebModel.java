@@ -51,6 +51,8 @@ public class YogaWebModel {
 //	private Integer questionDetails_updated_by;
 	//private Date questionDetailsbyUpdatedOn;
 	private List<QuestionWebModel> questionss;
+	private List<Integer> fileIds;
+	private Integer questionDetailsId;
 
 
 

@@ -183,4 +183,25 @@ public class MediaFilesServiceImpl implements MediaFileService {
 	        }
 	    }
 
+
+	    @Override
+	    public void deleteFilesByIds(List<Integer> fileIds) {
+	        try {
+	            if (!Utility.isNullOrEmptyList(fileIds)) {
+	                // Retrieve the files from the database
+	                List<MediaFiles> mediaFiles = mediaFilesRepository.findAllById(fileIds);
+	                
+	                if (!mediaFiles.isEmpty()) {
+	                    // Delete files from S3 and mark them as inactive in the database
+	                    deleteMediaFiles(mediaFiles);
+	                } else {
+	                    logger.warn("No media files found for the given file IDs: {}", fileIds);
+	                }
+	            }
+	        } catch (Exception e) {
+	            logger.error("Error at deleteFilesByIds() -> [{}]", e.getMessage(), e);
+	            throw new RuntimeException("An error occurred while deleting media files.");
+	        }
+	    }
+
 }

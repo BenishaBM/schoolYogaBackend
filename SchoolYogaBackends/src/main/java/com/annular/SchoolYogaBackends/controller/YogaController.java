@@ -83,4 +83,31 @@ public class YogaController {
             return ResponseEntity.internalServerError().body(new Response(-1, "Fail", e.getMessage()));
         }
     }
+    
+    @RequestMapping(path = "/updateYogaPost", method = RequestMethod.PUT, consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    public Response updateYogaPost(@ModelAttribute YogaWebModel yogaWebModel) {
+        try {
+            logger.info("updateYogaPost Inputs :- {}", yogaWebModel);
+
+            // Validate input data
+            if (yogaWebModel == null || yogaWebModel.getId() == null) {
+                return new Response(-1, "Invalid input data. Yoga ID is required.", null);
+            }
+
+            YogaWebModel updatedPost = yogaService.updateYogaWithFiles(yogaWebModel);
+            if (updatedPost != null) {
+                return new Response(1, "Yoga post updated successfully.", updatedPost);
+            } else {
+                return new Response(-1, "Failed to update Yoga post.", null);
+            }
+
+        } catch (IllegalArgumentException e) {
+            logger.error("Validation error at updateYogaPost() -> {}", e.getMessage());
+            return new Response(-1, e.getMessage(), null);
+        } catch (Exception e) {
+            logger.error("Error at updateYogaPost() -> {}", e.getMessage(), e);
+            return new Response(-1, "An unexpected error occurred while updating Yoga post.", null);
+        }
+    }
+
 }
