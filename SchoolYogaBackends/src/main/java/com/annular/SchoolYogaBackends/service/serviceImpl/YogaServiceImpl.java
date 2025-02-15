@@ -9,6 +9,8 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import javax.transaction.Transactional;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -202,6 +204,7 @@ public class YogaServiceImpl implements YogaService {
 	    return responseList.isEmpty() ? null : responseList.get(0);
 	}
 
+	@Transactional
 	@Override
 	public boolean deleteYogaPostById(YogaWebModel yogaWebModel) {
 	    try {
@@ -219,6 +222,7 @@ public class YogaServiceImpl implements YogaService {
 	            );
 	            // Save the updated post
 	            yogaRepository.save(post);
+	            questionDetailsRepository.softDeleteByYogaId(post.getId());
 	            return true;
 	        } else {
 	            return false; // Post not found
