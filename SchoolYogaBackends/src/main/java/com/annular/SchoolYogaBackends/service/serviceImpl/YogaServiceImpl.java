@@ -75,6 +75,7 @@ public class YogaServiceImpl implements YogaService {
 			// Create and save a new Yoga post
 			Yoga posts = Yoga.builder().yogaId(UUID.randomUUID().toString()).description(yogaWebModel.getDescription())
 					.status(true)
+					.user(userFromDB)
 					.classDetailsId(yogaWebModel.getClassDetailsId())
 					.day(yogaWebModel.getDay())
 					.createdOn(new Date()).build();
@@ -214,12 +215,14 @@ public class YogaServiceImpl implements YogaService {
 	            Yoga post = postData.get();
 	            post.setStatus(false);
 	            // Delete associated media files using the correct variable name
-	            mediaFilesService.deleteMediaFilesByCategoryAndRefIds(
-	                    MediaFileCategory.Yoga,
-	                    Collections.singletonList(post.getId())
-	            
-	                    
-	            );
+//	            mediaFilesService.deleteMediaFilesByCategoryAndRefIds(
+//	                    MediaFileCategory.Yoga,
+//	                    Collections.singletonList(post.getId())
+//	            
+//	                    
+//	            );
+	            // Delete associated media files
+                mediaFilesService.deleteMediaFilesByUserIdAndCategoryAndRefIds(post.getUser().getUserId(), MediaFileCategory.Yoga,yogaWebModel.getMediaFilesIds());
 	            // Save the updated post
 	            yogaRepository.save(post);
 	            questionDetailsRepository.softDeleteByYogaId(post.getId());

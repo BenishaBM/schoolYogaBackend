@@ -53,6 +53,7 @@ public class YogaWebModel {
 	private List<QuestionWebModel> questionss;
 	private List<Integer> fileIds;
 	private Integer questionDetailsId;
+	 private List<Integer> mediaFilesIds;
 
 
 

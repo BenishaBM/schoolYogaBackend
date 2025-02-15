@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -25,6 +26,7 @@ import com.annular.SchoolYogaBackends.model.MediaFiles;
 import com.annular.SchoolYogaBackends.model.User;
 import com.annular.SchoolYogaBackends.repository.MediaFilesRepository;
 import com.annular.SchoolYogaBackends.service.MediaFileService;
+import com.annular.SchoolYogaBackends.service.UserService;
 import com.annular.SchoolYogaBackends.util.FileUtil;
 import com.annular.SchoolYogaBackends.util.S3Util;
 import com.annular.SchoolYogaBackends.util.Utility;
@@ -41,6 +43,9 @@ public class MediaFilesServiceImpl implements MediaFileService {
 	
 	@Autowired
 	FileUtil fileUtil;
+	
+    @Autowired
+    UserService userService;
 
 	@Autowired
 	S3Util s3Util;
@@ -201,6 +206,16 @@ public class MediaFilesServiceImpl implements MediaFileService {
 	        } catch (Exception e) {
 	            logger.error("Error at deleteFilesByIds() -> [{}]", e.getMessage(), e);
 	            throw new RuntimeException("An error occurred while deleting media files.");
+	        }
+	    }
+
+
+	    @Override
+	    public void deleteMediaFilesByUserIdAndCategoryAndRefIds(Integer userId, MediaFileCategory category, List<Integer> idList) {
+	        Optional<User> user = userService.getUser(userId);
+	        if (user.isPresent()) {
+	            List<MediaFiles> mediaFiles = mediaFilesRepository.getMediaFilesByUserIdAndCategoryAndRefIds(userId, category, idList);
+	            this.deleteMediaFiles(mediaFiles);
 	        }
 	    }
 

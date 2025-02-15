@@ -18,5 +18,8 @@ public interface MediaFileService {
 
 	void deleteFilesByIds(List<Integer> fileIds);
 
+	void deleteMediaFilesByUserIdAndCategoryAndRefIds(Integer userId, MediaFileCategory yoga,
+			List<Integer> mediaFilesIds);
+
 
 }
