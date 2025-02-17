@@ -324,14 +324,13 @@ public class YogaServiceImpl implements YogaService {
 		}
 		return false; // Return false if the record was not found
 	}
-
 	@Override
 	public boolean deleteMediaFilesById(YogaWebModel yogaWebModel) {
-	    boolean isDeleted = mediaFilesService.deleteMediaFilesByUserIdAndCategoryAndRefIds(
+	    return mediaFilesService.deleteMediaFilesByUserIdAndCategoryAndRefIds(
 	            MediaFileCategory.Yoga, yogaWebModel.getMediaFilesIds()
-	    );
-	    return isDeleted; // Return the actual deletion status
+	    ); 
 	}
+
 
 
 }
