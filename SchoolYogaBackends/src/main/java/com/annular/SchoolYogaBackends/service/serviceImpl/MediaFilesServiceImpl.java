@@ -219,4 +219,19 @@ public class MediaFilesServiceImpl implements MediaFileService {
 	        }
 	    }
 
+	    @Override
+	    public boolean deleteMediaFilesByUserIdAndCategoryAndRefIds(MediaFileCategory yoga,
+	            List<Integer> mediaFilesIds) {
+	        
+	        List<MediaFiles> mediaFiles = mediaFilesRepository.getMediaFilesByUserIdAndCategoryAndRefIdss(yoga, mediaFilesIds);
+	        
+	        if (mediaFiles == null || mediaFiles.isEmpty()) {
+	            return false; // No files found, return false
+	        }
+	        
+	        this.deleteMediaFiles(mediaFiles);
+	        return true; // Return true if deletion was successful
+	    }
+
+
 }

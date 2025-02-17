@@ -110,4 +110,36 @@ public class YogaController {
         }
     }
 
+    @PostMapping("/deleteQuestionById")
+    public ResponseEntity<?> deleteQuestionById(@RequestBody YogaWebModel yogaWebModel) {
+        try {
+            boolean isDeleted = yogaService.deleteQuestionById(yogaWebModel);
+            if (isDeleted) {
+                return ResponseEntity.ok(new Response(1, "Success","question deleted successfully."));
+            } else {
+                return ResponseEntity.badRequest().body(new Response(-1, "fail","Failed to delete post"));
+            }
+        } catch (Exception e) {
+            logger.error("deleteQuestionById Method Exception -> {}", e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body(new Response(-1, "Fail", e.getMessage()));
+        }
+    }
+    
+
+    @PostMapping("/deleteMediaFilesById")
+    public ResponseEntity<?> deleteMediaFilesById(@RequestBody YogaWebModel yogaWebModel) {
+        try {
+            boolean isDeleted = yogaService.deleteMediaFilesById(yogaWebModel);
+            if (isDeleted) {
+                return ResponseEntity.ok(new Response(1, "Success","deleteMediaFilesById successfully."));
+            } else {
+                return ResponseEntity.badRequest().body(new Response(-1, "fail","Failed to delete post"));
+            }
+        } catch (Exception e) {
+            logger.error("deleteQuestionById Method Exception -> {}", e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body(new Response(-1, "Fail", e.getMessage()));
+        }
+    }
 }
