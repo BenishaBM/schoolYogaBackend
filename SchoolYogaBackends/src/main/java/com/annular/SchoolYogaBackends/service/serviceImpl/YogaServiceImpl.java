@@ -151,6 +151,7 @@ public class YogaServiceImpl implements YogaService {
 				return YogaWebModel.builder().id(yoga.getId()).yogaId(yoga.getYogaId())
 						.description(yoga.getDescription()).classDetailsId(yoga.getClassDetailsId())
 						.classLevel(classLevel) // Replacing classDetailsId with classLevel
+						.userId(yoga.getUser().getUserId())
 						.day(yoga.getDay()).status(yoga.getStatus()).createdBy(yoga.getCreatedBy())
 						.createdOn(yoga.getCreatedOn()).updatedBy(yoga.getUpdatedBy()).updatedOn(yoga.getUpdatedOn())
 						.postFiles(postFiles).questionss(questionWebModels) // Ensure this field exists in YogaWebModel
