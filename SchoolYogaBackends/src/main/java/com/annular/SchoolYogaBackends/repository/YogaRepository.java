@@ -23,10 +23,13 @@ public interface YogaRepository extends JpaRepository<Yoga, Integer> {
 	@Query("SELECT p FROM Yoga p WHERE p.id = :id AND p.status = true")
 	Optional<Yoga> findByYogaId(Integer id);
 	
-	@Query("SELECT COUNT(y) > 0 FROM Yoga y WHERE y.day = :day AND y.classDetailsId = :classDetailsId AND y.status = true")
+	@Query("SELECT COUNT(y) > 1 FROM Yoga y WHERE y.day = :day AND y.classDetailsId = :classDetailsId AND y.status = true")
 	boolean existsByDayAndClassDetailsId(@Param("day") String day, @Param("classDetailsId") Integer classDetailsId);
 
 	
+	@Query("SELECT COUNT(y) > 0 FROM Yoga y WHERE y.day = :day AND y.classDetailsId = :classDetailsId AND y.status = true")
+	boolean existsByDayAndClassDetailsIds(@Param("day") String day, @Param("classDetailsId") Integer classDetailsId);
+
 
 	
 

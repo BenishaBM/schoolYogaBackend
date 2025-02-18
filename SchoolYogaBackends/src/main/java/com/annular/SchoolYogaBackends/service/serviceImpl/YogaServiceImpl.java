@@ -68,7 +68,7 @@ public class YogaServiceImpl implements YogaService {
 			logger.info("User found: {}", userFromDB.getUserName());
 
 			// ✅ Check for duplicate entry before saving
-			boolean exists = yogaRepository.existsByDayAndClassDetailsId(yogaWebModel.getDay(),
+			boolean exists = yogaRepository.existsByDayAndClassDetailsIds(yogaWebModel.getDay(),
 					yogaWebModel.getClassDetailsId());
 			if (exists) {
 				logger.error("Yoga entry with day '{}' and classDetailsId '{}' already exists.", yogaWebModel.getDay(),
