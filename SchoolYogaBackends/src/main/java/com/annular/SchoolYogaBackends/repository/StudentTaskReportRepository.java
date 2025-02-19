@@ -1,5 +1,7 @@
 package com.annular.SchoolYogaBackends.repository;
 
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -12,5 +14,11 @@ public interface StudentTaskReportRepository extends JpaRepository<StudentTaskRe
 
 	@Query("SELECT s FROM StudentTaskReports s WHERE s.yogaId = :yogaId AND s.userId = :userId")
 	StudentTaskReports findByYogaIdAndUserId(@Param("yogaId") Integer yogaId, @Param("userId") Integer userId);
+
+	@Query("SELECT s FROM StudentTaskReports s WHERE s.yogaId = :id AND s.studentTaskReportIsActive = true")
+	List<StudentTaskReports> findByYogaId(Integer id);
+
+	@Query("SELECT s FROM StudentTaskReports s WHERE s.yogaId = :id AND s.userId = :userId")
+	List<StudentTaskReports> findByYogaIdAndUserIds(Integer id, Integer userId);
 
 }

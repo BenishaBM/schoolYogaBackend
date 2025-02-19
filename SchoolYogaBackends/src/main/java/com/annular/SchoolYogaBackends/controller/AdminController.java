@@ -39,6 +39,24 @@ public class AdminController {
 	        return new Response(0, "fail", "An error occurred while retrieving student data.");
 	    }
 	}
+	
+	@GetMapping("/getAllStdIdAndDayDetails")
+	public Response getAllStdIdAndDay(@RequestParam("stdId") Integer stdId, @RequestParam("day") String day, @RequestParam("userId")Integer userId) {
+		try {
+			// Fetch data from the service layer
+			Map<String, Object> dbData = adminService.getAllStdIdAndDay(stdId, day, userId);
+
+			// If data is found, return success response
+			return new Response(1, "Success", dbData);
+
+		} catch (Exception e) {
+			// Improved logging with schoolId for better tracing
+			logger.error("Error occurred while fetching student data for schoolId: {} -> {}", stdId, e.getMessage(), e);
+
+			// Return failure response with error message
+			return new Response(0, "fail", "An error occurred while retrieving student data.");
+		}
+	}
 
 
 
