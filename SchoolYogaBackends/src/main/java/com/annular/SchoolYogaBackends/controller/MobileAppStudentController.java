@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -88,5 +89,17 @@ public class MobileAppStudentController {
 		} catch (Exception ex) {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null); // Internal server error
 		}
+	}
+	
+	@DeleteMapping("deleteByStudentCategoryId")
+	public ResponseEntity<?> deleteByStudentCategoryId(@RequestParam("id") Integer id) {
+	    try {
+	        logger.info("deleteByStudentCategoryId request for userId: {}", id);
+	        return mobileAppService.deleteByStudentCategoryId(id);
+	    } catch (Exception e) {
+	        logger.error("deleteByStudentCategoryId Method Exception: {}", e.getMessage(), e);
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+	                             .body(new Response(-1, "Fail", e.getMessage()));
+	    }
 	}
 }

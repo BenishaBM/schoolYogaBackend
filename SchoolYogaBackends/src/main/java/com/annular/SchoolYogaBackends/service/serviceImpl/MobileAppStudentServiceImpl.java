@@ -14,16 +14,20 @@ import org.hibernate.service.spi.ServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.annular.SchoolYogaBackends.controller.MobileAppStudentController;
 import com.annular.SchoolYogaBackends.model.MediaFileCategory;
 import com.annular.SchoolYogaBackends.model.QuestionDetails;
 import com.annular.SchoolYogaBackends.model.StudentAnsReport;
+import com.annular.SchoolYogaBackends.model.StudentCategoryDetails;
 import com.annular.SchoolYogaBackends.model.StudentTaskReports;
 import com.annular.SchoolYogaBackends.model.Yoga;
 import com.annular.SchoolYogaBackends.repository.QuestionDetailsRepository;
 import com.annular.SchoolYogaBackends.repository.StudentAnsReportRepository;
+import com.annular.SchoolYogaBackends.repository.StudentCategoryDetailsRepository;
 import com.annular.SchoolYogaBackends.repository.StudentTaskReportRepository;
 import com.annular.SchoolYogaBackends.repository.YogaRepository;
 import com.annular.SchoolYogaBackends.service.MediaFileService;
@@ -42,6 +46,9 @@ public class MobileAppStudentServiceImpl implements MobileAppStudentService {
 	
 	@Autowired
 	MediaFileService mediaFilesService;
+	
+	@Autowired
+	StudentCategoryDetailsRepository studentCategoryDetailsRepository;
 	
 	@Autowired
 	StudentTaskReportRepository studentTaskReportRepository;
@@ -249,4 +256,20 @@ public class MobileAppStudentServiceImpl implements MobileAppStudentService {
 	    newReport.setQuestionDetailsId(answer.getQuestionDetailsId());  // Added this line
 	    return newReport;
 	}
+
+	@Override
+	public ResponseEntity<?> deleteByStudentCategoryId(Integer id) {
+	    Optional<StudentCategoryDetails> db = studentCategoryDetailsRepository.findById(id);
+	    
+	    if (db.isPresent()) {
+	        StudentCategoryDetails studentCategory = db.get();
+	        studentCategory.setStudentCategoryIsActive(false); // Assuming 'status' is a Boolean field
+	        studentCategoryDetailsRepository.save(studentCategory); // Save updated entity
+	        
+	        return ResponseEntity.ok("Status set to false successfully.");
+	    }
+	    
+	    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Student Category not found.");
+	}
+
 }
