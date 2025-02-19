@@ -19,6 +19,7 @@ public class StudentReportWebModel {
 	    private Integer classDetailsId;
 	    private Boolean completedStatus;
 	    private List<StudentAnswerWebModel> studentReports;
+	    private List<StudentMediaReportWebModel> mediaFiles; // Added this
 
 
 }
