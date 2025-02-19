@@ -22,6 +22,7 @@ public class JwtResponse {
     private Integer status;
     private String token;
     private String userType;
+    private Integer stdId;
 
 }
 

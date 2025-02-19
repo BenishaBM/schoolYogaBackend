@@ -100,7 +100,7 @@ public class UserController {
 				// Return response with JWT and refresh token
 				return ResponseEntity.ok(new JwtResponse(jwt, userDetails.getId(), 1, // Assuming this is a status or
 																						// role value
-						refreshToken.getToken(), userDetails.getUserType()));
+						refreshToken.getToken(), userDetails.getUserType(), user.getStd()));
 			} else {
 				return ResponseEntity.badRequest().body(new Response(-1, "Fail", "Invalid email or password"));
 			}
@@ -155,7 +155,7 @@ public class UserController {
                    
                     1,
                     token.getData().toString(),
-                    userData.get().getUserType()
+                    userData.get().getUserType(),1
                    ));
         }
         return ResponseEntity.badRequest().body(new Response(-1, "Fail", "Refresh Token Failed"));

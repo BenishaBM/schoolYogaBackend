@@ -212,12 +212,15 @@ public class UserServiceImpl implements UserService {
 	            classLevel = classOptional.map(ClassDetails::getClassLevel).orElse(null);
 	        }
 
+	        Optional<AvatarImage> db = avatarImageRepository.findById(user.getProfilePic());
+	        Optional<SmileImage> dbs = smileImageRepository.findById(user.getSmilePic());
+	        
 	        // Fetching profile and smile picture paths
-	        String profilePicUrl = user.getProfilePic() != null ? 
-	            "https://schoolyogabackend.s3.ap-south-1.amazonaws.com/" + user.getProfilePic() : null;
+	        String profilePicUrls = user.getProfilePic() != null ? 
+	            "https://schoolyogabackend.s3.ap-south-1.amazonaws.com/" + db.get().getPath() : null;
 
 	        String smilePicUrl = user.getSmilePic() != null ? 
-	            "https://schoolyogabackend.s3.ap-south-1.amazonaws.com/" + user.getSmilePic() : null;
+	            "https://schoolyogabackend.s3.ap-south-1.amazonaws.com/" + dbs.get().getPath() : null;
 
 	        // Constructing response using HashMap
 	        userDetailsMap.put("emailId", user.getEmailId());
@@ -232,7 +235,7 @@ public class UserServiceImpl implements UserService {
 	        userDetailsMap.put("rollNo", user.getRollNo());
 	        userDetailsMap.put("schoolName", schoolName);
 	        userDetailsMap.put("std", classLevel);
-	        userDetailsMap.put("profilePic", profilePicUrl);
+	        userDetailsMap.put("profilePic", profilePicUrls);
 	        userDetailsMap.put("smilePic", smilePicUrl);
 	        userDetailsMap.put("frdName", user.getFrdName());
 	        userDetailsMap.put("age", user.getAge());
