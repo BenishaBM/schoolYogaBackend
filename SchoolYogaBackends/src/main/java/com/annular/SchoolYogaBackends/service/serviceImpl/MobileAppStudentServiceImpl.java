@@ -18,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import com.annular.SchoolYogaBackends.Response;
 import com.annular.SchoolYogaBackends.controller.MobileAppStudentController;
 import com.annular.SchoolYogaBackends.model.MediaFileCategory;
 import com.annular.SchoolYogaBackends.model.QuestionDetails;
@@ -266,7 +267,7 @@ public class MobileAppStudentServiceImpl implements MobileAppStudentService {
 	        studentCategory.setStudentCategoryIsActive(false); // Assuming 'status' is a Boolean field
 	        studentCategoryDetailsRepository.save(studentCategory); // Save updated entity
 	        
-	        return ResponseEntity.ok("Status set to false successfully.");
+	        return ResponseEntity.ok(new Response(1,"success"," Deleted successfully."));
 	    }
 	    
 	    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Student Category not found.");
