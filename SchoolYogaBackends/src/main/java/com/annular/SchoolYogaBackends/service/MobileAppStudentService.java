@@ -8,7 +8,7 @@ import com.annular.SchoolYogaBackends.webModel.StudentReportWebModel;
 
 public interface MobileAppStudentService {
 
-	Map<String, Object> getAllTaskDataByStdId(Integer stdId);
+	Map<String, Object> getAllTaskDataByStdId(Integer stdId, Integer userId);
 
 	Map<String, Object> getAllStdIdAndDay(Integer stdId, String day);
 

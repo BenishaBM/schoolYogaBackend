@@ -53,48 +53,54 @@ public class MobileAppStudentServiceImpl implements MobileAppStudentService {
 	StudentAnsReportRepository studentAnsReportRepository;
 
 	@Override
-	public Map<String, Object> getAllTaskDataByStdId(Integer stdId) {
-		Map<String, Object> responseMap = new LinkedHashMap<>(); // Preserve insertion order
+	public Map<String, Object> getAllTaskDataByStdId(Integer stdId, Integer userId) {
+	    Map<String, Object> responseMap = new LinkedHashMap<>();
 
-		try {
-			List<Yoga> yogaList = yogaRepository.findByClassDetailsId(stdId);
+	    try {
+	        List<Yoga> yogaList = yogaRepository.findByClassDetailsId(stdId);
 
-			if (!yogaList.isEmpty()) {
-				List<Map<String, Object>> taskData = new ArrayList<>();
+	        if (!yogaList.isEmpty()) {
+	            List<Map<String, Object>> taskData = new ArrayList<>();
 
-				for (Yoga yoga : yogaList) {
-					Map<String, Object> yogaData = new HashMap<>();
-					yogaData.put("yogaId", yoga.getYogaId());
-					yogaData.put("description", yoga.getDescription());
-					yogaData.put("status", yoga.getStatus());
-					yogaData.put("day", yoga.getDay());
-					yogaData.put("classDetailsId", yoga.getClassDetailsId());
+	            for (Yoga yoga : yogaList) {
+	                Map<String, Object> yogaData = new HashMap<>();
+	                yogaData.put("yogaId", yoga.getId());
+	                yogaData.put("description", yoga.getDescription());
+	                yogaData.put("status", yoga.getStatus());
+	                yogaData.put("day", yoga.getDay());
+	                yogaData.put("classDetailsId", yoga.getClassDetailsId());
 
-					taskData.add(yogaData);
-				}
+	                System.out.println(">>>>>>> Fetching data for yogaId: " + yoga.getId());
 
-				// Response in correct order
-				responseMap.put("status", 1);
-				responseMap.put("message", "Success");
-				responseMap.put("data", taskData);
+	                // Fetch task report
+	                StudentTaskReports taskReport = studentTaskReportRepository.findByYogaIdAndUserId(yoga.getId(), userId);
+	                
+	                if (taskReport != null) {
+	                    yogaData.put("completedStatus", taskReport.getCompletedStatus() != null ? taskReport.getCompletedStatus() : false);
+	                } else {
+	                    yogaData.put("completedStatus", false);
+	                }
 
-			} else {
-				// No tasks found
-				responseMap.put("status", 0);
-				responseMap.put("message", "No tasks found for the provided standard ID.");
-				responseMap.put("data", Collections.emptyList());
-			}
+	                taskData.add(yogaData);
+	            }
 
-		} catch (Exception e) {
-			responseMap.put("status", -1);
-			responseMap.put("message", "An error occurred while retrieving task data.");
-			responseMap.put("data", Collections.emptyList());
+	            responseMap.put("status", 1);
+	            responseMap.put("message", "Success");
+	            responseMap.put("data", taskData);
+	        } else {
+	            responseMap.put("status", 0);
+	            responseMap.put("message", "No tasks found for the provided standard ID.");
+	            responseMap.put("data", Collections.emptyList());
+	        }
+	    } catch (Exception e) {
+	        responseMap.put("status", -1);
+	        responseMap.put("message", "An error occurred while retrieving task data: " + e.getMessage());
+	        responseMap.put("data", Collections.emptyList());
 
-			// logger.error("Error in getAllTaskDataByStdId for stdId {}: {}", stdId,
-			// e.getMessage(), e);
-		}
+	        e.printStackTrace();
+	    }
 
-		return responseMap;
+	    return responseMap;
 	}
 
 	@Override

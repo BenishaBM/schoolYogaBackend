@@ -37,10 +37,10 @@ public class MobileAppStudentController {
 	MobileAppStudentService mobileAppService;
 
 	@GetMapping("/getAllTaskDataByStdId")
-	public ResponseEntity<Map<String, Object>> getAllTaskDataByStdId(@RequestParam("stdId") Integer stdId) {
+	public ResponseEntity<Map<String, Object>> getAllTaskDataByStdId(@RequestParam("stdId") Integer stdId,@RequestParam("userId") Integer userId) {
 		try {
 			// Fetch data from service layer
-			Map<String, Object> dbData = mobileAppService.getAllTaskDataByStdId(stdId);
+			Map<String, Object> dbData = mobileAppService.getAllTaskDataByStdId(stdId,userId);
 
 			// Return response with appropriate HTTP status
 			return ResponseEntity.ok(dbData); // 200 OK
