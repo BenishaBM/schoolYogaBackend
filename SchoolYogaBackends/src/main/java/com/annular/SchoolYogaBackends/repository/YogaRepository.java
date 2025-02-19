@@ -36,6 +36,9 @@ public interface YogaRepository extends JpaRepository<Yoga, Integer> {
 	@Query("SELECT p FROM Yoga p WHERE p.classDetailsId = :stdId AND p.day = :day AND p.status = true")
 	Yoga findYogaByStdIdAndDay(Integer stdId, String day);
 
+	@Query("SELECT p FROM Yoga p WHERE p.classDetailsId = :std AND p.status = true")
+	List<Yoga> findByStdId(Integer std);
+
 
 	
 

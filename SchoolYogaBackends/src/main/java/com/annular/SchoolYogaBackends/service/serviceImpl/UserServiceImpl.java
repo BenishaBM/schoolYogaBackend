@@ -24,7 +24,9 @@ import com.annular.SchoolYogaBackends.model.RefreshToken;
 import com.annular.SchoolYogaBackends.model.SchoolDetails;
 import com.annular.SchoolYogaBackends.model.SmileImage;
 import com.annular.SchoolYogaBackends.model.StudentCategoryDetails;
+import com.annular.SchoolYogaBackends.model.StudentTaskReports;
 import com.annular.SchoolYogaBackends.model.User;
+import com.annular.SchoolYogaBackends.model.Yoga;
 import com.annular.SchoolYogaBackends.repository.AvartarImageRepository;
 import com.annular.SchoolYogaBackends.repository.CategoryRepository;
 import com.annular.SchoolYogaBackends.repository.ClassDetailsRepository;
@@ -32,7 +34,9 @@ import com.annular.SchoolYogaBackends.repository.RefreshTokenRepository;
 import com.annular.SchoolYogaBackends.repository.SchoolDetailsRepository;
 import com.annular.SchoolYogaBackends.repository.SmileImageRepository;
 import com.annular.SchoolYogaBackends.repository.StudentCategoryDetailsRepository;
+import com.annular.SchoolYogaBackends.repository.StudentTaskReportRepository;
 import com.annular.SchoolYogaBackends.repository.UserRepository;
+import com.annular.SchoolYogaBackends.repository.YogaRepository;
 //import com.annular.SchoolYogaBackends.service.MediaFileService;
 import com.annular.SchoolYogaBackends.service.UserService;
 import com.annular.SchoolYogaBackends.util.S3Util;
@@ -56,6 +60,9 @@ public class UserServiceImpl implements UserService {
 	@Autowired
 	SmileImageRepository smileImageRepository;
 	
+	@Autowired
+	YogaRepository yogaRepository;
+	
     @Autowired
     S3Util s3Util;
 
@@ -73,6 +80,9 @@ public class UserServiceImpl implements UserService {
 	
 	@Autowired
 	CategoryRepository categoryRepository;
+	
+	@Autowired
+	StudentTaskReportRepository studentTaskReportRepository;
 	
 	@Autowired
 	StudentCategoryDetailsRepository studentCategoryDetailsRepository;
@@ -221,6 +231,29 @@ public class UserServiceImpl implements UserService {
 
 	        String smilePicUrl = user.getSmilePic() != null ? 
 	            "https://schoolyogabackend.s3.ap-south-1.amazonaws.com/" + dbs.get().getPath() : null;
+	        
+	     // Fetching Yoga Table data
+	        List<Map<String, Object>> daysList = new ArrayList<>();
+
+	        if (user.getStd() != null) {
+	            List<Yoga> yogaDays = yogaRepository.findByStdId(user.getStd());
+
+	            for (Yoga yoga : yogaDays) {
+	                Map<String, Object> dayDetails = new HashMap<>();
+	                dayDetails.put("day", yoga.getDay());
+	                dayDetails.put("id", yoga.getId());
+
+	                // Fetch task report
+	                StudentTaskReports taskReport = studentTaskReportRepository.findByYogaIdAndUserId(yoga.getId(), user.getUserId());
+
+	                if (taskReport != null) {
+	                	dayDetails.put("completedStatus", taskReport.getCompletedStatus() != null ? taskReport.getCompletedStatus() : false);
+	                } else {
+	                	dayDetails.put("completedStatus", false);
+	                }
+	                daysList.add(dayDetails);
+	            }
+	        }
 
 	        // Constructing response using HashMap
 	        userDetailsMap.put("emailId", user.getEmailId());
@@ -241,6 +274,7 @@ public class UserServiceImpl implements UserService {
 	        userDetailsMap.put("age", user.getAge());
 	        userDetailsMap.put("frdDescription", user.getFrdDescription());
 	        userDetailsMap.put("empId", user.getEmpId());
+	        userDetailsMap.put("days", daysList);
 
 	        // Fetching StudentCategoryDetails
 	        List<StudentCategoryDetails> studentCategoryDetailsList = studentCategoryDetailsRepository.findByUser(user);
