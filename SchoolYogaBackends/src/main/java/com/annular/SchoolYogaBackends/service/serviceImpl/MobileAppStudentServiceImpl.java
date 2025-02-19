@@ -2,6 +2,7 @@ package com.annular.SchoolYogaBackends.service.serviceImpl;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -28,6 +29,7 @@ import com.annular.SchoolYogaBackends.repository.YogaRepository;
 import com.annular.SchoolYogaBackends.service.MediaFileService;
 import com.annular.SchoolYogaBackends.service.MobileAppStudentService;
 import com.annular.SchoolYogaBackends.webModel.FileOutputWebModel;
+import com.annular.SchoolYogaBackends.webModel.StudentAnswerWebModel;
 import com.annular.SchoolYogaBackends.webModel.StudentReportWebModel;
 
 @Service
@@ -144,44 +146,101 @@ public class MobileAppStudentServiceImpl implements MobileAppStudentService {
 	    }
 	}
 
-//	@Override
-//	public StudentTaskReports saveStudentAns(StudentReportWebModel studentTaskReportWebModel) {
-//	    // Step 1: Create a new StudentTaskReport
-//	    StudentTaskReports newTaskReport = new StudentTaskReports();
-//	    newTaskReport.setYogaId(studentTaskReportWebModel.getYogaId());
-//	    newTaskReport.setUserId(studentTaskReportWebModel.getUserId());
-//	    newTaskReport.setStudentTaskReportIsActive(true);  // Mark as active
-//	    newTaskReport.setCreatedBy(studentTaskReportWebModel.getCreatedBy());  // Set the creator ID
-//	    newTaskReport.setClassDetailsId(studentTaskReportWebModel.getClassDetailsId());  // Set the associated class details ID
-//	    newTaskReport.setCompletedStatus(false);  // Assuming task is incomplete by default
-//	    
-//	    // Save the new StudentTaskReport
-//	    StudentTaskReports savedTaskReport = studentTaskReportRepository.save(newTaskReport);
-//
-//	    // Step 2: Iterate over the answers (StudentAnsReport)
-//	    List<StudentAnsReport> savedReports = new ArrayList<>();
-//	    for (StudentReportWebModel studentReportWebModel : studentTaskReportWebModel.getStudentReports()) {
-//	        StudentAnsReport newReport = new StudentAnsReport();
-//	        newReport.setAns(studentReportWebModel.getNewAnswer());  // Set the new answer
-//	        newReport.setStudentTaskReportUpdatedBy(studentReportWebModel.getUpdatedBy());  // Set the "updated by" field
-//	        newReport.setStudentTaskReportUpdatedOn(new Date());  // Set the "updated on" timestamp
-//	        newReport.setStudentAnsReportIsActive(true);  // Mark as active, if necessary
-//	        newReport.setCreatedBy(studentReportWebModel.getCreatedBy());  // Set the creator ID
-//	        newReport.setQuestionDetailsId(studentReportWebModel.getQuestionDetailsId());  // Set the associated question details ID
-//	        
-//	        // Step 3: Set the relationship to the saved StudentTaskReport
-//	        newReport.setStudentTaskReport(savedTaskReport);  // Link to the saved task report
-//	        
-//	        // Save the StudentAnsReport
-//	        StudentAnsReport savedReport = studentAnsReportRepository.save(newReport);
-//	        
-//	        // Add the saved report to the list
-//	        savedReports.add(savedReport);
-//	    }
-//
-//	    // Step 4: Return the saved StudentTaskReport
-//	    return savedTaskReport;
-//	}
+	@Override
+	public StudentTaskReports saveStudentAns(StudentReportWebModel studentTaskReportWebModel) {
+	    // Validate input data
+	    validateStudentTaskReport(studentTaskReportWebModel);
+	    
+	    // Step 1: Create and save StudentTaskReport
+	    StudentTaskReports savedTaskReport = createAndSaveTaskReport(studentTaskReportWebModel);
+	    
+	    // Step 2: Save Student Answers if provided
+	    if (studentTaskReportWebModel.getStudentReports() != null && !studentTaskReportWebModel.getStudentReports().isEmpty()) {
+	        saveStudentAnswers(studentTaskReportWebModel.getStudentReports(), savedTaskReport);
+	    }
+	    
+	    return savedTaskReport;
+	}
 
+	private void validateStudentTaskReport(StudentReportWebModel model) {
+	    if (model == null) {
+	        throw new IllegalArgumentException("StudentTaskReportWebModel cannot be null");
+	    }
+	    
+	    List<String> missingFields = new ArrayList<>();
+	    if (model.getUserId() == null) missingFields.add("userId");
+	    if (model.getYogaId() == null) missingFields.add("yogaId");
+	    if (model.getCreatedBy() == null) missingFields.add("createdBy");
+	    if (model.getClassDetailsId() == null) missingFields.add("classDetailsId");
+	    
+	    if (!missingFields.isEmpty()) {
+	        throw new IllegalArgumentException("Missing required fields: " + String.join(", ", missingFields));
+	    }
 
+	    // Validate student reports if present
+	    if (model.getStudentReports() != null) {
+	        for (StudentAnswerWebModel answer : model.getStudentReports()) {
+	            validateStudentAnswer(answer);
+	        }
+	    }
+	}
+
+	private void validateStudentAnswer(StudentAnswerWebModel answer) {
+	    if (answer == null) {
+	        throw new IllegalArgumentException("Student answer cannot be null");
+	    }
+
+	    List<String> missingFields = new ArrayList<>();
+	    if (answer.getNewAnswer() == null) missingFields.add("newAnswer");
+	    if (answer.getUpdatedBy() == null) missingFields.add("updatedBy");
+	    if (answer.getCreatedBy() == null) missingFields.add("createdBy");
+	    if (answer.getQuestionDetailsId() == null) missingFields.add("questionDetailsId");
+
+	    if (!missingFields.isEmpty()) {
+	        throw new IllegalArgumentException("Missing required fields in student answer: " + String.join(", ", missingFields));
+	    }
+	}
+
+	private StudentTaskReports createAndSaveTaskReport(StudentReportWebModel model) {
+	    StudentTaskReports newTaskReport = new StudentTaskReports();
+	    newTaskReport.setYogaId(model.getYogaId());
+	    newTaskReport.setUserId(model.getUserId());
+	    newTaskReport.setStudentTaskReportIsActive(true);
+	    newTaskReport.setCreatedBy(model.getCreatedBy());
+	    newTaskReport.setClassDetailsId(model.getClassDetailsId());
+	    newTaskReport.setCompletedStatus(model.getCompletedStatus());
+	    newTaskReport.setStudentTaskReportCreatedOn(new Date());
+	    
+	    try {
+	        return studentTaskReportRepository.save(newTaskReport);
+	    } catch (Exception e) {
+	        throw new RuntimeException("Failed to save student task report: " + e.getMessage(), e);
+	    }
+	}
+
+	private void saveStudentAnswers(List<StudentAnswerWebModel> answers, StudentTaskReports taskReport) {
+	    List<StudentAnsReport> savedReports = new ArrayList<>();
+	    
+	    for (StudentAnswerWebModel answer : answers) {
+	        try {
+	            StudentAnsReport newReport = createStudentAnsReport(answer, taskReport);
+	            savedReports.add(studentAnsReportRepository.save(newReport));
+	        } catch (Exception e) {
+	            logger.error("Failed to save student answer: " + e.getMessage(), e);
+	            throw new RuntimeException("Failed to save student answer for question " + answer.getQuestionDetailsId(), e);
+	        }
+	    }
+	}
+
+	private StudentAnsReport createStudentAnsReport(StudentAnswerWebModel answer, StudentTaskReports taskReport) {
+	    StudentAnsReport newReport = new StudentAnsReport();
+	    newReport.setAns(answer.getNewAnswer());
+	    newReport.setStudentTaskReportUpdatedBy(answer.getUpdatedBy());
+	    newReport.setStudentTaskReportUpdatedOn(new Date());
+	    newReport.setStudentAnsReportIsActive(true);
+	    newReport.setCreatedBy(answer.getCreatedBy());
+	    newReport.setStudentTaskReport(taskReport);
+	    newReport.setQuestionDetailsId(answer.getQuestionDetailsId());  // Added this line
+	    return newReport;
+	}
 }

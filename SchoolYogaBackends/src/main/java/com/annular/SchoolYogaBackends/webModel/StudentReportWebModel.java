@@ -1,13 +1,6 @@
 package com.annular.SchoolYogaBackends.webModel;
 
-import java.util.Date;
-
-import javax.persistence.Column;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-
-import org.hibernate.annotations.CreationTimestamp;
+import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,17 +13,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class StudentReportWebModel {
 
-	private Integer studentTaskReportId;
-	private Integer yogaId;
-	private Integer userId;
-	private Boolean studentTaskReportIsActive;
-	private Integer createdBy;
-	private Date studentTaskReportCreatedOn;
-	private Integer studentTaskReportUpdatedBy;
-	private Date studentTaskReportUpdatedOn;
-	private Integer classDetailsId;
-	private Boolean completedStatus;
-	private String ans;
-	private Integer questionDetailsId;
+	 private Integer yogaId;
+	    private Integer userId;
+	    private Integer createdBy;
+	    private Integer classDetailsId;
+	    private Boolean completedStatus;
+	    private List<StudentAnswerWebModel> studentReports;
+
 
 }

@@ -12,13 +12,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.annular.SchoolYogaBackends.Response;
 import com.annular.SchoolYogaBackends.model.StudentAnsReport;
+import com.annular.SchoolYogaBackends.model.StudentTaskReports;
 import com.annular.SchoolYogaBackends.service.MobileAppStudentService;
 import com.annular.SchoolYogaBackends.webModel.StudentReportWebModel;
 
@@ -73,12 +76,12 @@ public class MobileAppStudentController {
 		}
 	}
 
-	@PutMapping("saveStudentAns")
-	public ResponseEntity<?> savetudentAns(StudentReportWebModel studentReportWebModel) {
+	@PostMapping("saveStudentAns")
+	public ResponseEntity<?> savetudentAns(@RequestBody StudentReportWebModel studentReportWebModel) {
 
 		try {
 			// Call the service method to update the answer
-			StudentAnsReport updatedReport = mobileAppService.saveStudentAns(studentReportWebModel);
+			StudentTaskReports updatedReport = mobileAppService.saveStudentAns(studentReportWebModel);
 			return ResponseEntity.ok(updatedReport); // Return the updated report as response
 		} catch (ResourceNotFoundException ex) {
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null); // Resource not found error
