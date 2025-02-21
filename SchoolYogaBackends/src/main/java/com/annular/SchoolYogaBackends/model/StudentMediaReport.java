@@ -8,6 +8,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import org.hibernate.annotations.CreationTimestamp;
@@ -59,5 +61,11 @@ public class StudentMediaReport {
 	@Column(name = "studentTaskReport_updated_on")
 	@CreationTimestamp
 	private Date studentTaskReportUpdatedOn;
+	
+	 // Map the relationship to StudentTaskReports entity
+    @ManyToOne
+    @JoinColumn(name = "studentTaskReportId", referencedColumnName = "studentTaskReportId")
+    private StudentTaskReports studentTaskReport;
+
 
 }

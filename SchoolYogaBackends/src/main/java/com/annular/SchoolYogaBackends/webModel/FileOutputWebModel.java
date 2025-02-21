@@ -1,6 +1,7 @@
 package com.annular.SchoolYogaBackends.webModel;
 
 import java.util.Date;
+import java.util.Map;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -35,6 +36,7 @@ public class FileOutputWebModel {
     private String elapsedTime;
     private String filmHookCode;
     private Long duration;
+    private Map<String, Object> answerDetails;
 
 
 }

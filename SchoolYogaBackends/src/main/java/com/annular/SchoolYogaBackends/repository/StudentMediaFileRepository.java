@@ -8,4 +8,5 @@ import com.annular.SchoolYogaBackends.model.StudentMediaReport;
 @Repository
 public interface StudentMediaFileRepository extends JpaRepository<StudentMediaReport, Integer>{
 
+
 }

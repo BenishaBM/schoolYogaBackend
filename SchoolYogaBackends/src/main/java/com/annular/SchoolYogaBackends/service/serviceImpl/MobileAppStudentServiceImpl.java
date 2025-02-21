@@ -337,6 +337,7 @@ public class MobileAppStudentServiceImpl implements MobileAppStudentService {
 		newMedia.setCreatedBy(media.getCreatedBy());
 		newMedia.setStudentMediaUpdatedBy(media.getStudentMediaUpdatedBy());
 		newMedia.setStudentMediaCreatedOn(new Date());
+		newMedia.setStudentTaskReport(taskReport);
 		return newMedia;
 	}
 

@@ -19,11 +19,13 @@ import com.annular.SchoolYogaBackends.model.ClassDetails;
 import com.annular.SchoolYogaBackends.model.MediaFileCategory;
 import com.annular.SchoolYogaBackends.model.QuestionDetails;
 import com.annular.SchoolYogaBackends.model.StudentAnsReport;
+import com.annular.SchoolYogaBackends.model.StudentMediaReport;
 import com.annular.SchoolYogaBackends.model.StudentTaskReports;
 import com.annular.SchoolYogaBackends.model.User;
 import com.annular.SchoolYogaBackends.model.Yoga;
 import com.annular.SchoolYogaBackends.repository.ClassDetailsRepository;
 import com.annular.SchoolYogaBackends.repository.QuestionDetailsRepository;
+import com.annular.SchoolYogaBackends.repository.StudentMediaFileRepository;
 import com.annular.SchoolYogaBackends.repository.StudentTaskReportRepository;
 import com.annular.SchoolYogaBackends.repository.UserRepository;
 import com.annular.SchoolYogaBackends.repository.YogaRepository;
@@ -42,6 +44,9 @@ public class AdminServiceImpl implements  AdminService {
 	
 	@Autowired
 	MediaFileService mediaFilesService;
+	
+	@Autowired
+	StudentMediaFileRepository studentMediaReportRepository;
 	
 	@Autowired
 	ClassDetailsRepository classDetailsRepository;
@@ -133,8 +138,9 @@ public class AdminServiceImpl implements  AdminService {
 	        List<Map<String, Object>> questionsList = fetchAndPopulateQuestions(yoga.getId(), questionMap);
 	        result.put("questions", questionsList);
 
-	        // Fetch and populate media files
-	        populateMediaFiles(result, yoga.getId());
+	        // Fetch and populate media files with their reports
+	        List<FileOutputWebModel> mediaFiles = fetchAndProcessMediaFiles(yoga.getId(), userId);
+	        result.put("mediaFiles", mediaFiles);
 
 	        // Fetch and process task reports
 	        processTaskReports(yoga.getId(), userId, questionMap);
@@ -145,6 +151,58 @@ public class AdminServiceImpl implements  AdminService {
 	        logger.error("Error fetching yoga details for student {} on day {}: {}", stdId, day, e.getMessage(), e);
 	        throw new ServiceException("Error fetching yoga details", e);
 	    }
+	}
+
+	private List<FileOutputWebModel> fetchAndProcessMediaFiles(Integer yogaId, Integer userId) {
+	    // Get media files
+	    List<FileOutputWebModel> mediaFiles = mediaFilesService.getMediaFilesByCategoryAndRefId(
+	        MediaFileCategory.Yoga, yogaId);
+	    
+	    if (mediaFiles == null || mediaFiles.isEmpty()) {
+	        return new ArrayList<>();
+	    }
+
+	    // Get task reports to access media reports
+	    List<StudentTaskReports> taskReports = studentTaskReportsRepository.findByYogaIdAndUserIds(yogaId, userId);
+	    Map<Integer, StudentMediaReport> mediaReportMap = new HashMap<>();
+
+	    // Build map of media reports by mediaFileId
+	    if (taskReports != null) {
+	    	System.out.println("@@@@@@@@@@@@@@@@@"+taskReports);
+	    	for (StudentTaskReports taskReport : taskReports) {
+	    	    if (taskReport.getStudentMediaReports() != null) {
+	    	    	System.out.println("?????????????");
+	    	        for (StudentMediaReport mediaReport : taskReport.getStudentMediaReports()) {
+	    	            System.out.println("Media Report Found: " + mediaReport);
+	    	            mediaReportMap.put(mediaReport.getMediaFileId(), mediaReport);
+	    	        }
+	    	    }
+	    	}
+
+	    }
+
+	    // Process each media file and add its report details
+	    for (FileOutputWebModel mediaFile : mediaFiles) {
+	        StudentMediaReport report = mediaReportMap.get(mediaFile.getId());
+	        System.out.println(">>>>>>>>>>>>>>>"+mediaFile.getId());
+	        Map<String, Object> answerDetails = new HashMap<>();
+	        if (report != null) {
+	            answerDetails.put("seen", report.getSeen());
+	            answerDetails.put("studentMediaReportId", report.getStudentMediaReportId());
+	            answerDetails.put("viewedMediaFilesId", report.getViewedMediaFilesId());
+	            answerDetails.put("isActive", report.getStudentMediaIsActive());
+	        } else {
+	            // Default values for files without reports
+	            answerDetails.put("seen", null);
+	            answerDetails.put("studentMediaReportId", null);
+	            answerDetails.put("viewedMediaFilesId", null);
+	            answerDetails.put("isActive", null);
+	        }
+	        
+	        mediaFile.setAnswerDetails(answerDetails);
+	    }
+
+	    return mediaFiles;
 	}
 
 	private void populateYogaDetails(Map<String, Object> result, Yoga yoga) {

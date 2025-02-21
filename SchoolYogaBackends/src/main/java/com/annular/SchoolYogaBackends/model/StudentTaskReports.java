@@ -68,6 +68,10 @@ public class StudentTaskReports {
 	// One-to-Many relationship with StudentAnsReport
     @OneToMany(mappedBy = "studentTaskReport")
     private List<StudentAnsReport> studentAnsReports;
+    
+    @OneToMany(mappedBy = "studentTaskReport")
+    private List<StudentMediaReport> studentMediaReports;
+
 
 	
 
