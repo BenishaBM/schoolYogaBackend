@@ -144,7 +144,7 @@ public class MobileAppStudentServiceImpl implements MobileAppStudentService {
 				Map<String, Object> questionMap = new HashMap<>();
 				questionMap.put("questionId", question.getQuestionDetailsId());
 				questionMap.put("questionDetails", question.getQuestionDetails());
-				questionMap.put("questionType", question.getQuestionType());
+				questionMap.put("fileType", question.getQuestionType());
 				questionMap.put("answerA", question.getAnswerA());
 				questionMap.put("answerB", question.getAnswerB());
 				questionMap.put("answerC", question.getAnswerC());
