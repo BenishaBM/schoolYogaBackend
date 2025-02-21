@@ -23,6 +23,9 @@ public class JwtResponse {
     private String token;
     private String userType;
     private Integer stdId;
+    private String userName;
+    private String profilePic;
+    private String smilePic;
 
 }
 

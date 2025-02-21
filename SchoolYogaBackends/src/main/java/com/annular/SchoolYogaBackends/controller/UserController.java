@@ -25,9 +25,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.annular.SchoolYogaBackends.Response;
 import com.annular.SchoolYogaBackends.UserStatusConfig;
+import com.annular.SchoolYogaBackends.model.AvatarImage;
 import com.annular.SchoolYogaBackends.model.RefreshToken;
+import com.annular.SchoolYogaBackends.model.SmileImage;
 import com.annular.SchoolYogaBackends.model.User;
+import com.annular.SchoolYogaBackends.repository.AvartarImageRepository;
 import com.annular.SchoolYogaBackends.repository.RefreshTokenRepository;
+import com.annular.SchoolYogaBackends.repository.SmileImageRepository;
 import com.annular.SchoolYogaBackends.repository.UserRepository;
 import com.annular.SchoolYogaBackends.security.UserDetailsImpl;
 import com.annular.SchoolYogaBackends.security.jwt.JwtResponse;
@@ -53,6 +57,12 @@ public class UserController {
 
 	@Autowired
 	AuthenticationManager authenticationManager;
+	
+	@Autowired
+	AvartarImageRepository avatarImageRepository;
+	
+	@Autowired
+	SmileImageRepository smileImageRepository;
 
 	@Autowired
 	UserService userService;
@@ -81,7 +91,17 @@ public class UserController {
 
 			if (checkUser.isPresent()) {
 				User user = checkUser.get();
+				
+				 
+				 Optional<AvatarImage> db = avatarImageRepository.findById(user.getProfilePic());
+			        Optional<SmileImage> dbs = smileImageRepository.findById(user.getSmilePic());
+			        
+			        // Fetching profile and smile picture paths
+			        String profilePicUrls = user.getProfilePic() != null ? 
+			            "https://schoolyogabackend.s3.ap-south-1.amazonaws.com/" + db.get().getPath() : null;
 
+			        String smilePicUrl = user.getSmilePic() != null ? 
+			            "https://schoolyogabackend.s3.ap-south-1.amazonaws.com/" + dbs.get().getPath() : null;
 				// Authenticate user with email and password
 				Authentication authentication = authenticationManager.authenticate(
 						new UsernamePasswordAuthenticationToken(userWebModel.getEmailId(), userWebModel.getPassword()));
@@ -100,7 +120,7 @@ public class UserController {
 				// Return response with JWT and refresh token
 				return ResponseEntity.ok(new JwtResponse(jwt, userDetails.getId(), 1, // Assuming this is a status or
 																						// role value
-						refreshToken.getToken(), userDetails.getUserType(), user.getStd()));
+						refreshToken.getToken(), userDetails.getUserType(), user.getStd(),user.getUserName(),profilePicUrls,smilePicUrl));
 			} else {
 				return ResponseEntity.badRequest().body(new Response(-1, "Fail", "Invalid email or password"));
 			}
@@ -155,7 +175,7 @@ public class UserController {
                    
                     1,
                     token.getData().toString(),
-                    userData.get().getUserType(),1
+                    userData.get().getUserType(),1,userData.get().getUserName(),"",""
                    ));
         }
         return ResponseEntity.badRequest().body(new Response(-1, "Fail", "Refresh Token Failed"));
