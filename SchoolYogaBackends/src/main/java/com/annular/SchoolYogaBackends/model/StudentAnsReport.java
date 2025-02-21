@@ -25,7 +25,7 @@ import lombok.ToString;
 @Builder
 @Getter
 @Setter
-@ToString
+@ToString(exclude = "studentTaskReport") // Prevent infinite recursion
 @AllArgsConstructor
 @NoArgsConstructor
 public class StudentAnsReport {

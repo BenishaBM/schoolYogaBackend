@@ -21,4 +21,13 @@ public interface StudentTaskReportRepository extends JpaRepository<StudentTaskRe
 	@Query("SELECT s FROM StudentTaskReports s WHERE s.yogaId = :id AND s.userId = :userId")
 	List<StudentTaskReports> findByYogaIdAndUserIds(Integer id, Integer userId);
 
+	// Add this to your StudentTaskReportsRepository interface
+	@Query("SELECT DISTINCT str FROM StudentTaskReports str " +
+	       "LEFT JOIN FETCH str.studentAnsReports " +
+	       "WHERE str.yogaId = :yogaId AND str.userId = :userId")
+	List<StudentTaskReports> findByYogaIdAndUserIdWithAnswers(
+	    @Param("yogaId") Integer yogaId, 
+	    @Param("userId") Integer userId
+	);
+
 }

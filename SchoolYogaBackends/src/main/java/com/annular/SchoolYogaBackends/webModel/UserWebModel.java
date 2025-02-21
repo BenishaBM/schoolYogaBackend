@@ -43,6 +43,8 @@ public class UserWebModel {
 	private String frdName;
 	private String frdDescription;
 	private String empId;
+    private String idToken;
+    private String accessToken;
 	
     
 

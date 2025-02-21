@@ -111,72 +111,123 @@ public class AdminServiceImpl implements  AdminService {
 	    
 	    return responseMap; // Return the HashMap containing response
 	}
-	
 	@Override
 	public Map<String, Object> getAllStdIdAndDay(Integer stdId, String day, Integer userId) {
-	    Map<String, Object> result = new HashMap<>();
+	    if (stdId == null || day == null || userId == null) {
+	        throw new IllegalArgumentException("stdId, day, and userId must not be null");
+	    }
+
 	    try {
+	        // Fetch Yoga Session
 	        Yoga yoga = yogaRepository.findYogaByStdIdAndDay(stdId, day);
 	        if (yoga == null) {
 	            logger.warn("No yoga session found for student {} on day {}", stdId, day);
 	            return Collections.emptyMap();
 	        }
 
-	        result.put("yogaId", yoga.getId());
-	        result.put("day", yoga.getDay());
-	        result.put("description", yoga.getDescription());
-
-	        List<QuestionDetails> questionDetailsList = questionDetailsRepository.findByYogaId(yoga.getId());
-	        List<Map<String, Object>> questionsList = new ArrayList<>();
+	        Map<String, Object> result = new HashMap<>();
+	        populateYogaDetails(result, yoga);
 	        
+	        // Fetch and populate questions
 	        Map<Integer, Map<String, Object>> questionMap = new HashMap<>();
-
-	        if (questionDetailsList != null && !questionDetailsList.isEmpty()) {
-	            for (QuestionDetails question : questionDetailsList) {
-	                Map<String, Object> questionData = new HashMap<>();
-	                questionData.put("questionId", question.getQuestionDetailsId());
-	                questionData.put("questionDetails", question.getQuestionDetails());
-	                questionData.put("questionType", question.getQuestionType());
-	                questionData.put("answerA", question.getAnswerA());
-	                questionData.put("answerB", question.getAnswerB());
-	                questionData.put("answerC", question.getAnswerC());
-	                questionData.put("answerD", question.getAnswerD());
-	                questionData.put("isActive", question.getQuestionDetailsIsActive());
-	                questionMap.put(question.getQuestionDetailsId(), questionData);
-	                questionsList.add(questionData);
-	            }
-	        }
+	        List<Map<String, Object>> questionsList = fetchAndPopulateQuestions(yoga.getId(), questionMap);
 	        result.put("questions", questionsList);
 
-	        List<FileOutputWebModel> mediaFiles = mediaFilesService.getMediaFilesByCategoryAndRefId(MediaFileCategory.Yoga, yoga.getId());
-	        result.put("mediaFiles", mediaFiles != null ? mediaFiles : new ArrayList<>());
+	        // Fetch and populate media files
+	        populateMediaFiles(result, yoga.getId());
 
-	        List<StudentTaskReports> taskReports = studentTaskReportsRepository.findByYogaIdAndUserIds(yoga.getId(), userId);
-	        if (taskReports == null || taskReports.isEmpty()) {
-	            logger.warn("No student task reports found for yoga session {} and user {}", yoga.getId(), userId);
-	            result.put("taskReports", new ArrayList<>());
-	            return result;
-	        }
+	        // Fetch and process task reports
+	        processTaskReports(yoga.getId(), userId, questionMap);
 
-	        for (StudentTaskReports task : taskReports) {
-	            for (StudentAnsReport ans : task.getStudentAnsReports()) {
-	                int questionId = ans.getQuestionDetailsId();
-	                Map<String, Object> questionData = questionMap.get(questionId);
-	                if (questionData != null) {
-	                    questionData.put("studentAnsReportId", ans.getStudentAnsReportId());
-	                    questionData.put("answer", ans.getAns());
-	                    questionData.put("isActive", ans.getStudentAnsReportIsActive());
-	                }
-	            }
-	        }
-
-	        result.put("taskReports", questionsList);
 	        return result;
 
 	    } catch (Exception e) {
 	        logger.error("Error fetching yoga details for student {} on day {}: {}", stdId, day, e.getMessage(), e);
 	        throw new ServiceException("Error fetching yoga details", e);
 	    }
+	}
+
+	private void populateYogaDetails(Map<String, Object> result, Yoga yoga) {
+	    result.put("yogaId", yoga.getId());
+	    result.put("day", yoga.getDay());
+	    result.put("description", yoga.getDescription());
+	}
+
+	private List<Map<String, Object>> fetchAndPopulateQuestions(Integer yogaId, Map<Integer, Map<String, Object>> questionMap) {
+	    List<QuestionDetails> questionDetailsList = questionDetailsRepository.findByYogaId(yogaId);
+	    List<Map<String, Object>> questionsList = new ArrayList<>();
+
+	    if (questionDetailsList != null && !questionDetailsList.isEmpty()) {
+	        for (QuestionDetails question : questionDetailsList) {
+	            Map<String, Object> questionData = createQuestionData(question);
+	            questionMap.put(question.getQuestionDetailsId(), questionData);
+	            questionsList.add(questionData);
+	        }
+	    }
+
+	    return questionsList;
+	}
+
+	private Map<String, Object> createQuestionData(QuestionDetails question) {
+	    Map<String, Object> questionData = new HashMap<>();
+	    questionData.put("questionId", question.getQuestionDetailsId());
+	    questionData.put("questionDetails", question.getQuestionDetails());
+	    questionData.put("questionType", question.getQuestionType());
+	    questionData.put("answerA", question.getAnswerA());
+	    questionData.put("answerB", question.getAnswerB());
+	    questionData.put("answerC", question.getAnswerC());
+	    questionData.put("answerD", question.getAnswerD());
+	    questionData.put("isActive", question.getQuestionDetailsIsActive());
+	    questionData.put("answerDetails", new HashMap<String, Object>());
+	    return questionData;
+	}
+
+	private void populateMediaFiles(Map<String, Object> result, Integer yogaId) {
+	    List<FileOutputWebModel> mediaFiles = mediaFilesService.getMediaFilesByCategoryAndRefId(
+	        MediaFileCategory.Yoga, yogaId);
+	    result.put("mediaFiles", mediaFiles != null ? mediaFiles : new ArrayList<>());
+	}
+
+	private void processTaskReports(Integer yogaId, Integer userId, Map<Integer, Map<String, Object>> questionMap) {
+	    List<StudentTaskReports> taskReports = studentTaskReportsRepository.findByYogaIdAndUserIds(yogaId, userId);
+	    
+	    if (taskReports == null || taskReports.isEmpty()) {
+	        logger.warn("No task reports found for yogaId {} and userId {}", yogaId, userId);
+	        return;
+	    }
+
+	    logger.info("Processing {} task reports for yogaId {} and userId {}", taskReports.size(), yogaId, userId);
+
+	    for (StudentTaskReports task : taskReports) {
+	        processStudentAnswers(task, questionMap);
+	    }
+	}
+
+	private void processStudentAnswers(StudentTaskReports task, Map<Integer, Map<String, Object>> questionMap) {
+	    logger.info("Processing taskReportId: {}", task.getStudentTaskReportId());
+	    
+	    for (StudentAnsReport ans : task.getStudentAnsReports()) {
+	        int questionId = ans.getQuestionDetailsId();
+	        Map<String, Object> questionData = questionMap.get(questionId);
+
+	        if (questionData == null) {
+	            logger.warn("No question found for questionId: {}", questionId);
+	            continue;
+	        }
+
+	        updateAnswerDetails(questionData, ans);
+	    }
+	}
+
+	private void updateAnswerDetails(Map<String, Object> questionData, StudentAnsReport ans) {
+	    @SuppressWarnings("unchecked")
+	    Map<String, Object> answerDetails = (Map<String, Object>) questionData.get("answerDetails");
+	    
+	    answerDetails.put("studentAnsReportId", ans.getStudentAnsReportId());
+	    answerDetails.put("answer", ans.getAns());
+	    answerDetails.put("isActive", ans.getStudentAnsReportIsActive());
+
+	    logger.info("Updated answerDetails for questionId {}: {}", ans.getQuestionDetailsId(), answerDetails);
 	}
 
 }

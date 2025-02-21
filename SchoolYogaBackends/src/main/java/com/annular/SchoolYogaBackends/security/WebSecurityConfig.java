@@ -71,7 +71,7 @@ public class WebSecurityConfig {
                 .authorizeRequests(
                         (authorize) -> authorize
                                 .antMatchers( "/user/login","/user/refreshToken","/user/register","/user/getAllAvatarImage","/user/getAllUserName","/category/getAllCategory","/user/getSmileImage",
-                                		"/DayDetails/getAllSchoolDetails","/DayDetails/getAllClassDetails")
+                                		"/DayDetails/getAllSchoolDetails","/DayDetails/getAllClassDetails","/auth/ssoCheck")
                                 .permitAll()
                                 .anyRequest()
                                 .authenticated()

@@ -25,7 +25,7 @@ import lombok.ToString;
 @Builder
 @Getter
 @Setter
-@ToString
+@ToString(exclude = "studentAnsReports") // Prevent infinite recursion
 @AllArgsConstructor
 @NoArgsConstructor
 public class StudentTaskReports {
@@ -63,6 +63,7 @@ public class StudentTaskReports {
 	
 	@Column(name = "completedStatus")
 	private Boolean completedStatus;
+	
 	
 	// One-to-Many relationship with StudentAnsReport
     @OneToMany(mappedBy = "studentTaskReport")
