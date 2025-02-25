@@ -34,37 +34,42 @@ public class AuthTokenFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        try {
-            String jwt = parseJwt(request);
-            logger.info("JWT from request :- " + jwt);
-            if (jwt != null && jwtUtils.validateJwtToken(jwt)) {
-                logger.info("JWT available...");
+    	try {
+    	    String jwt = parseJwt(request);
+    	    logger.info("JWT from request: " + jwt);
 
-                // Old one
-                // String username = jwtUtils.getUserNameFromJwtToken(jwt);
-                // UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+    	    if (jwt != null && jwtUtils.validateJwtToken(jwt)) {
+    	        logger.info("JWT available...");
 
-                // New one Username and usertype based login
-                String userName = jwtUtils.getDataFromJwtToken(jwt, "userName");
-//                String userType = jwtUtils.getDataFromJwtToken(jwt, "userType");
-                StringBuilder userNameWithUserType = new StringBuilder().append(userName);
-                logger.info("Username with UserType : " + userNameWithUserType);
+    	        // Fetch username first
+    	        String userName = jwtUtils.getDataFromJwtToken(jwt, "userName");
 
-                UserDetails userDetails = userDetailsService.loadUserByUsername(userNameWithUserType.toString());
+    	        // If username is null, fallback to emailId
+    	        if (userName == null || userName.isEmpty()) {
+    	            userName = jwtUtils.getDataFromJwtToken(jwt, "userEmailId");
+    	            logger.info("Username is missing, using EmailId instead: " + userName);
+    	        }
 
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities());
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+    	        if (userName != null && !userName.isEmpty()) {
+    	            UserDetails userDetails = userDetailsService.loadUserByUsername(userName);
+    	            UsernamePasswordAuthenticationToken authentication =
+    	                    new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+    	            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-            } else {
-                logger.info("JWT not available...");
-            }
-        } catch (Exception e) {
-            logger.error("Cannot set user authentication...", e);
-        }
+    	            SecurityContextHolder.getContext().setAuthentication(authentication);
+    	            logger.info("Authentication successful for: " + userName);
+    	        } else {
+    	            logger.warn("No valid identifier found in JWT.");
+    	        }
+    	    } else {
+    	        logger.info("JWT not available or invalid...");
+    	    }
+    	} catch (Exception e) {
+    	    logger.error("Cannot set user authentication...", e);
+    	}
 
-        filterChain.doFilter(request, response);
+    	filterChain.doFilter(request, response);
+
     }
 
     private String parseJwt(HttpServletRequest request) {
