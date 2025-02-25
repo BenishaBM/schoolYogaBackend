@@ -30,12 +30,13 @@ public class AuthTokenFilter extends OncePerRequestFilter {
     private UserDetailsServiceImpl userDetailsService;
 
     private static final Logger logger = LoggerFactory.getLogger(AuthTokenFilter.class);
-
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
+
         try {
             String jwt = parseJwt(request);
-            logger.info("JWT from request :- {}", jwt);
+            logger.info("JWT from request :- " + jwt);
             if (jwt != null && jwtUtils.validateJwtToken(jwt)) {
                 logger.info("JWT available...");
 
@@ -44,23 +45,25 @@ public class AuthTokenFilter extends OncePerRequestFilter {
                 // UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
                 // New one Username and usertype based login
-                String userEmailId = jwtUtils.getDataFromJwtToken(jwt, "userEmailId");
-                String userType = jwtUtils.getDataFromJwtToken(jwt, "userType");
-                StringBuilder userNameWithUserType = new StringBuilder().append(userEmailId).append("^").append(userType);
-                logger.info("Username with UserType : {}", userNameWithUserType);
+                String userName = jwtUtils.getDataFromJwtToken(jwt, "userName");
+//                String userType = jwtUtils.getDataFromJwtToken(jwt, "userType");
+                StringBuilder userNameWithUserType = new StringBuilder().append(userName);
+                logger.info("Username with UserType : " + userNameWithUserType);
 
                 UserDetails userDetails = userDetailsService.loadUserByUsername(userNameWithUserType.toString());
 
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                        userDetails, null, userDetails.getAuthorities());
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authentication);
 
+                SecurityContextHolder.getContext().setAuthentication(authentication);
             } else {
                 logger.info("JWT not available...");
             }
         } catch (Exception e) {
             logger.error("Cannot set user authentication...", e);
         }
+
         filterChain.doFilter(request, response);
     }
 
