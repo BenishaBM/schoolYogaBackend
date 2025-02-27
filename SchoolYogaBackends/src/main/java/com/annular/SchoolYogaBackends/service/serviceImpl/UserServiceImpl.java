@@ -295,7 +295,7 @@ public class UserServiceImpl implements UserService {
 	            categoryDetails.put("studentCategoryIsActive", studentCategory.getStudentCategoryIsActive());
 	            categoryDetails.put("studentCategoryCreatedOn", studentCategory.getStudentCategoryCreatedOn());
 	            categoryDetails.put("studentCategoryUpdatedOn", studentCategory.getStudentCategoryUpdatedOn());
-
+                categoryDetails.put("studentCategoryId", studentCategory.getId());
 	            categoryDetailsList.add(categoryDetails);
 	        }
 
