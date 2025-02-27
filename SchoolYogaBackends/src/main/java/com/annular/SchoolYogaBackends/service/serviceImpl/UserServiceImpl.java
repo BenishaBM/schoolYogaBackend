@@ -243,14 +243,20 @@ public class UserServiceImpl implements UserService {
 	                dayDetails.put("day", yoga.getDay());
 	                dayDetails.put("id", yoga.getId());
 
-	                // Fetch task report
-	                StudentTaskReports taskReport = studentTaskReportRepository.findByYogaIdAndUserId(yoga.getId(), user.getUserId());
+	                List<StudentTaskReports> taskReportList = studentTaskReportRepository.findByYogaIdAndUserId(yoga.getId(), user.getUserId());
 
-	                if (taskReport != null) {
-	                	dayDetails.put("completedStatus", taskReport.getCompletedStatus() != null ? taskReport.getCompletedStatus() : false);
+	                List<Boolean> completedStatusList = new ArrayList<>();
+
+	                if (!taskReportList.isEmpty()) {
+	                    for (StudentTaskReports taskReport : taskReportList) {
+	                        completedStatusList.add(taskReport.getCompletedStatus() != null ? taskReport.getCompletedStatus() : false);
+	                    }
 	                } else {
-	                	dayDetails.put("completedStatus", false);
+	                    completedStatusList.add(false); // Default value if no records are found
 	                }
+
+	                dayDetails.put("completedStatus", completedStatusList);
+
 	                daysList.add(dayDetails);
 	            }
 	        }

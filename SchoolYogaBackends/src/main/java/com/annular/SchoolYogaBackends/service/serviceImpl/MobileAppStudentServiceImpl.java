@@ -85,16 +85,19 @@ public class MobileAppStudentServiceImpl implements MobileAppStudentService {
 					yogaData.put("classDetailsId", yoga.getClassDetailsId());
 
 					System.out.println(">>>>>>> Fetching data for yogaId: " + yoga.getId());
+					List<StudentTaskReports> taskReportList = studentTaskReportRepository.findByYogaIdAndUserId(yoga.getId(), userId);
 
-					// Fetch task report
-					StudentTaskReports taskReport = studentTaskReportRepository.findByYogaIdAndUserId(yoga.getId(),
-							userId);
-
-					if (taskReport != null) {
-						yogaData.put("completedStatus",
-								taskReport.getCompletedStatus() != null ? taskReport.getCompletedStatus() : false);
+					if (!taskReportList.isEmpty()) {
+					    // Assuming you want to store multiple statuses in a list
+					    List<Boolean> completedStatusList = new ArrayList<>();
+					    
+					    for (StudentTaskReports taskReport : taskReportList) {
+					        completedStatusList.add(taskReport.getCompletedStatus() != null ? taskReport.getCompletedStatus() : false);
+					    }
+					    
+					    yogaData.put("completedStatus", completedStatusList);
 					} else {
-						yogaData.put("completedStatus", false);
+					    yogaData.put("completedStatus", Collections.singletonList(false)); // Default value if no records are found
 					}
 
 					taskData.add(yogaData);
